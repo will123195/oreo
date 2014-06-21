@@ -87,21 +87,21 @@ db.album.find({
 ### Database
 
 * [`configure`](#configure)
-* ['discover'](#discover)
-* ['execute'](#execute)
+* [`discover`](#discover)
+* [`execute`](#execute)
 
 ### Table
 
-* ['find'](#find)
-* ['findOne'](#findOne)
-* ['get'](#get)
-* ['insert'](#insert)
+* [`find`](#find)
+* [`findOne`](#findOne)
+* [`get`](#get)
+* [`insert`](#insert)
 
 ### Record
 
-* ['hydrate'](#hydrate)
-* ['save'](#save)
-* ['update'](#update)
+* [`hydrate`](#hydrate)
+* [`save`](#save)
+* [`update`](#update)
 
 ## Advanced Usage
 
