@@ -6,14 +6,12 @@ A simple ORM for PostgreSQL
 
 - No configuration necessary
 - Automatically discovers tables, primary keys and foreign keys
-- Ability to "hydrate" foreign keys
-- Ability to "hydrate" arrays of foreign keys
+- Ability to "hydrate" foreign keys (and arrays of foreign keys)
 - Object caching / Query memoization
 
 ## Usage
 
 Suppose we have the following schema:
-
 ```sql
 CREATE TABLE author (
   id SERIAL,
@@ -31,6 +29,7 @@ CREATE TABLE book (
 );
 ```
 
+Discover the tables in the database and insert some rows:
 ```js
 var oreo = require('oreo')
 var db = oreo()    // defaults to localhost:5432
@@ -47,38 +46,57 @@ db.book.insert({
 })
 ```
 
+Get multi-dimensional (1-to-1) data from the database:
 ```js
-db.book.get(book.id, function(err, book) {
+db.book.get(1, function(err, book) {
   console.log(book)
   // { id: 1, title: On the Road, author_id: 1 } 
   book.hydrate(function(err, book) {
     console.log(book)
     // { id: 1, title: On the Road, author_id: 1, author: { name: Jack Kerouac, books: [1] } }
-
-    book.update({
-      title: 'New Title'
-    }, function(err, book) {
-      console.log(book)
-      // { id: 1, title: New Title, author_id: 1 } 
-    })
   })
 })
 ```
 
+Get multi-dimensional (1-to-many) data from the database:
 ```js
-db.configure('')
-
 db.author.get(1, function(err, author) {
-  author.hydrate('books')
-  // author.books[0].title
+  console.log(author)
+  // { id: 1, name: Jack Kerouak, books: [1] } 
+  db.books.mget(author.books, function(err, books) {
+    author.books = books
+    console.log(author)
+    // { id: 1, name: Jack Kerouac, books: [ { id: 1, title: On the Road, author_id: 1 } ] }
+  })
 })
+```
 
-db.album.find({
+Update an existing row:
+```js
+book.update({
+  title: 'New Title'
+}, function(err, book) {
+  console.log(book)
+  // { id: 1, title: New Title, author_id: 1 } 
+})
+```
+
+Specify a constructor:
+```js
+db.author._meta.constructor = function() {
+  this.num_books = this.books.length
+}
+```
+
+Find one or more rows:
+```js
+db.author.find({
+  where: ["name ilike 'Jack%'"],
   order: 'name asc',
   offset: 5,
   limit: 5
-}, function(err, albums) {
-
+}, function(err, authors) {
+  console.log(authors[0].num_books) // 1
 })
 ```
 
@@ -86,7 +104,6 @@ db.album.find({
 
 ### Database
 
-* [`configure`](#configure)
 * [`discover`](#discover)
 * [`execute`](#execute)
 
@@ -96,6 +113,7 @@ db.album.find({
 * [`findOne`](#findOne)
 * [`get`](#get)
 * [`insert`](#insert)
+* [`mget`](#mget)
 
 ### Row
 
@@ -106,9 +124,6 @@ db.album.find({
 
 ## Database
 
-<a name="configure" />
-### db.configure( opts )
-
 <a name="discover" />
 ### db.discover( [cb] )
 
@@ -118,30 +133,33 @@ db.album.find({
 ## Table
 
 <a name="find" />
-### db.find( opts, [cb] )
+### db.mytable.find( opts, [cb] )
 
 <a name="findOne" />
-### db.findOne( [cb] )
+### db.mytable.findOne( [cb] )
 
 <a name="get" />
-### db.get( id, [cb] )
+### db.mytable.get( id, [cb] )
 
 <a name="insert" />
-### db.insert( data, [cb] )
+### db.mytable.insert( data, [cb] )
+
+<a name="mget" />
+### db.mytable.mget( ids, [cb] )
 
 ## Row
 
 <a name="hydrate" />
-### db.hydrate( [opts], [cb] )
+### row.hydrate( [cb] )
 
 <a name="save" />
-### db.save( [data], [cb] )
+### row.save( [data], [cb] )
 
 <a name="set" />
-### db.set( data )
+### row.set( data )
 
 <a name="update" />
-### db.update( data, [cb] )
+### row.update( data, [cb] )
 
 ## Advanced Usage
 
