@@ -101,7 +101,47 @@ db.album.find({
 
 * [`hydrate`](#hydrate)
 * [`save`](#save)
+* [`set`](#set)
 * [`update`](#update)
+
+## Database
+
+<a name="configure" />
+### db.configure( opts )
+
+<a name="discover" />
+### db.discover( [cb] )
+
+<a name="execute" />
+### db.execute( sql, [data], [cb] )
+
+## Table
+
+<a name="find" />
+### db.find( opts, [cb] )
+
+<a name="findOne" />
+### db.findOne( [cb] )
+
+<a name="get" />
+### db.get( id, [cb] )
+
+<a name="insert" />
+### db.insert( data, [cb] )
+
+## Record
+
+<a name="hydrate" />
+### db.hydrate( [opts], [cb] )
+
+<a name="save" />
+### db.save( [data], [cb] )
+
+<a name="set" />
+### db.set( data )
+
+<a name="update" />
+### db.update( data, [cb] )
 
 ## Advanced Usage
 
