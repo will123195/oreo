@@ -40,13 +40,7 @@ Discover the tables in the database and insert some rows:
 ```js
 var oreo = require('oreo')
 var pg = require('pg')
-var db = oreo(pg, {
-  //hosts: ['localhost'],
-  //port: 5432,
-  //name: 'postgres',
-  //user: 'postgres',
-  //pass: null
-})
+var db = oreo(pg)
 
 // discover tables, primary keys and foreign keys
 db.discover().on('ready', function() {
@@ -96,8 +90,19 @@ db.discover().on('ready', function() {
 
 ## Initialize
 
-<a name="initialize" />
 ### oreo( pg, [opts] )
+
+```js
+var oreo = require('oreo')
+var pg = require('pg')
+var db = oreo(pg, {
+  hosts: ['localhost'],
+  port: 5432,
+  name: 'postgres',
+  user: 'postgres',
+  pass: 'postgres'
+})
+```
 
 ## Database
 
