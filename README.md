@@ -8,12 +8,7 @@ A simple ORM for PostgreSQL
 - Automatically discovers tables, primary keys and foreign keys
 - Ability to "hydrate" foreign keys
 - Ability to "hydrate" arrays of foreign keys
-- Real-time cache layer
-
-## Works Best With
-
-- Triggers that automatically populate arrays of 1-to-many foreign keys
-- Triggers that "replicate" to Redis Foreign Data Wrapper (for high-speed reads)
+- Object caching / Query memoization
 
 ## Usage
 
@@ -90,3 +85,9 @@ orm.album.find({
 
 })
 ```
+
+## Advanced Usage
+
+- Create triggers that automatically populate arrays of 1-to-many foreign keys
+- Create triggers that "replicate" to Redis Foreign Data Wrapper (for high-speed reads)
+
