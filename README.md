@@ -33,14 +33,10 @@ CREATE TABLE book (
 
 ```js
 var oreo = require('oreo')
+var db = oreo()    // defaults to localhost:5432
+db.discover()      // discover tables, primary keys and foreign keys
 
-var orm = oreo()    // defaults to localhost:5432
-
-orm.discover()      // discover tables, primary keys and foreign keys
-```
-
-```js
-orm.book.insert({
+db.book.insert({
   title: 'On the Road',
   author: {
     name: 'Jack Kerouac'
@@ -52,7 +48,7 @@ orm.book.insert({
 ```
 
 ```js
-orm.book.get(book.id, function(err, book) {
+db.book.get(book.id, function(err, book) {
   console.log(book)
   // { id: 1, title: On the Road, author_id: 1 } 
   book.hydrate(function(err, book) {
@@ -70,14 +66,14 @@ orm.book.get(book.id, function(err, book) {
 ```
 
 ```js
-orm.configure('')
+db.configure('')
 
-orm.author.get(1, function(err, author) {
+db.author.get(1, function(err, author) {
   author.hydrate('books')
   // author.books[0].title
 })
 
-orm.album.find({
+db.album.find({
   order: 'name asc',
   offset: 5,
   limit: 5
@@ -86,8 +82,67 @@ orm.album.find({
 })
 ```
 
+## Documentation
+
+### Database
+
+* [`configure`](#configure)
+* ['discover'](#discover)
+* ['execute'](#execute)
+
+### Table
+
+* ['find'](#find)
+* ['findOne'](#findOne)
+* ['get'](#get)
+* ['insert'](#insert)
+
+### Record
+
+* ['hydrate'](#hydrate)
+* ['save'](#save)
+* ['update'](#update)
+
 ## Advanced Usage
 
-- Create triggers that automatically populate arrays of 1-to-many foreign keys
-- Create triggers that "replicate" to Redis Foreign Data Wrapper (for high-speed reads)
+### Create triggers that automatically populate arrays of 1-to-many foreign keys
+
+```sql
+CREATE OR REPLACE FUNCTION author_books () RETURNS trigger AS
+$body$
+BEGIN
+  IF TG_OP != 'INSERT' THEN
+    UPDATE author
+    SET books = (
+      SELECT ARRAY(
+        SELECT id
+        FROM book
+        WHERE author_id = OLD.author_id
+        ORDER BY title ASC
+      )
+    )
+    WHERE id = OLD.author_id;
+  END IF;
+  UPDATE author
+  SET books = (
+    SELECT ARRAY(
+      SELECT id
+      FROM book
+      WHERE author_id = NEW.author_id
+      ORDER BY title ASC
+    )
+  )
+  WHERE id = NEW.author_id;
+  RETURN null;
+END;
+$body$
+LANGUAGE 'plpgsql';
+
+CREATE TRIGGER book_tr1
+  AFTER INSERT OR UPDATE OF author_id OR DELETE 
+  ON book FOR EACH ROW 
+  EXECUTE PROCEDURE author_books();
+```
+
+### Create triggers that "replicate" to Redis Foreign Data Wrapper (for high-speed reads)
 
