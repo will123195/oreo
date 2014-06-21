@@ -54,6 +54,7 @@ db.discover().on('ready', function() {
   }, function(err, book) {
     console.log(book)
     // { id: 1, title: On the Road, author_id: 1 } 
+
     db.author.get(book.author_id, function(err, author) {
       console.log(author)
       // { id: 1, name: Jack Kerouac, books: [ 1 ] }
