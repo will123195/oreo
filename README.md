@@ -108,7 +108,7 @@ db.album.find({
 ### Create triggers that automatically populate arrays of 1-to-many foreign keys
 
 ```sql
-CREATE OR REPLACE FUNCTION author_books () RETURNS trigger AS
+CREATE OR REPLACE FUNCTION author_books() RETURNS trigger AS
 $body$
 BEGIN
   IF TG_OP != 'INSERT' THEN
