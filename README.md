@@ -14,7 +14,7 @@ A simple ORM for PostgreSQL
 
 Suppose we have the following schema:
 
-```
+```sql
 CREATE TABLE author (
   id SERIAL,
   name VARCHAR,
