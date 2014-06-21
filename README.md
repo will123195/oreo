@@ -97,7 +97,7 @@ db.album.find({
 * [`get`](#get)
 * [`insert`](#insert)
 
-### Record
+### Row
 
 * [`hydrate`](#hydrate)
 * [`save`](#save)
@@ -129,7 +129,7 @@ db.album.find({
 <a name="insert" />
 ### db.insert( data, [cb] )
 
-## Record
+## Row
 
 <a name="hydrate" />
 ### db.hydrate( [opts], [cb] )
