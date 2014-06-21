@@ -5,9 +5,16 @@ A simple ORM for PostgreSQL
 ## Features
 
 - No configuration necessary
-- Automatically discovers tables, primary keys and foreign keys
+- Automatically discovers tables, primary keys, foreign keys and master/standby servers
 - Ability to "hydrate" foreign keys (and arrays of foreign keys)
 - Object caching / Query memoization
+
+## Installation
+
+```bash
+npm install oreo
+npm install pg
+```
 
 ## Usage
 
@@ -32,17 +39,23 @@ CREATE TABLE book (
 Discover the tables in the database and insert some rows:
 ```js
 var oreo = require('oreo')
-var db = oreo()    // defaults to localhost:5432
-db.discover()      // discover tables, primary keys and foreign keys
+var pg = require('pg')
+var db = oreo(pg, {
+  //hosts: ['localhost'],
+  //port: 5432
+})
 
-db.book.insert({
-  title: 'On the Road',
-  author: {
-    name: 'Jack Kerouac'
-  }
-}, function(err, book) {
-  console.log(book)
-  // { id: 1, title: On the Road, author_id: 1 } 
+db.discover() // discover tables, primary keys and foreign keys
+.on('ready', function() {
+  db.book.insert({
+    title: 'On the Road',
+    author: {
+      name: 'Jack Kerouac'
+    }
+  }, function(err, book) {
+    console.log(book)
+    // { id: 1, title: On the Road, author_id: 1 } 
+  })
 })
 ```
 
@@ -102,6 +115,10 @@ db.author.find({
 
 ## Documentation
 
+### initialize
+
+* [`oreo`](#oreo)
+
 ### Database
 
 * [`discover`](#discover)
@@ -121,6 +138,11 @@ db.author.find({
 * [`save`](#save)
 * [`set`](#set)
 * [`update`](#update)
+
+## Initialize
+
+<a name="oreo" />
+### oreo( pg, [opts] )
 
 ## Database
 
