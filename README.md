@@ -42,7 +42,10 @@ var oreo = require('oreo')
 var pg = require('pg')
 var db = oreo(pg, {
   //hosts: ['localhost'],
-  //port: 5432
+  //port: 5432,
+  //name: 'postgres',
+  //user: 'postgres',
+  //pass: null
 })
 
 db.discover() // discover tables, primary keys and foreign keys
