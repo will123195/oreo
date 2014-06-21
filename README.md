@@ -131,7 +131,7 @@ Executes SQL query.
 ## Table
 
 <a name="find" />
-### db.mytable.find( opts, [cb] )
+### db.table.find( opts, [cb] )
 
 Find one or more rows:
 ```js
@@ -146,16 +146,16 @@ db.author.find({
 ```
 
 <a name="findOne" />
-### db.mytable.findOne( [cb] )
+### db.table.findOne( [cb] )
 
 <a name="get" />
-### db.mytable.get( id, [cb] )
+### db.table.get( id, [cb] )
 
 <a name="insert" />
-### db.mytable.insert( data, [cb] )
+### db.table.insert( data, [cb] )
 
 <a name="mget" />
-### db.mytable.mget( ids, [cb] )
+### db.table.mget( ids, [cb] )
 
 Get multi-dimensional (1-to-many) data from the database:
 ```js
