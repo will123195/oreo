@@ -72,7 +72,7 @@ db.discover().on('ready', function() {
 
 ### initialize
 
-* [`oreo`](#oreo)
+* [`oreo`](#initialize)
 
 ### Database
 
@@ -96,7 +96,7 @@ db.discover().on('ready', function() {
 
 ## Initialize
 
-<a name="oreo" />
+<a name="initialize" />
 ### oreo( pg, [opts] )
 
 ## Database
