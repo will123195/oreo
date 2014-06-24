@@ -1,6 +1,6 @@
 # oreo
 
-A simple ORM for PostgreSQL
+An intuitive ORM for PostgreSQL with schema detection.
 
 ## Features
 
