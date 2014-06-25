@@ -2,7 +2,9 @@
 
 
 
-An intuitive ORM for PostgreSQL with schema detection.
+[![Build Status](https://travis-ci.org/will123195/oreo.svg?branch=master)](https://travis-ci.org/will123195/oreo)
+
+
 
 ## Features
 
