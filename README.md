@@ -22,34 +22,26 @@ npm install pg
 
 ## Example
 
-```sql
-CREATE TABLE author (
-  id SERIAL,
-  name VARCHAR,
-  books INTEGER[],
-  CONSTRAINT author_pkey PRIMARY KEY(id)
-);
-
-CREATE TABLE book (
-  id SERIAL,
-  title VARCHAR,
-  author_id INTEGER,
-  CONSTRAINT book_pkey PRIMARY KEY(id),
-  CONSTRAINT book_fk1 FOREIGN KEY (author_id) REFERENCES author(id)
-);
-```
-
-Discover the tables in the database and insert some rows:
+Simple usage example:
 ```js
+//
+// Initialize Oreo
+//
 var oreo = require('oreo')
-var pg = require('pg')
-var db = oreo(pg)
+var db = oreo({
+  driver: 'pg',
+  hosts: ['localhost'],
+  port: 5432,
+  name: 'database',
+  user: 'username',
+  pass: 'password'
+})
 
-// discover tables, primary keys and foreign keys
+// Discover tables, primary keys and foreign keys
 db.discover().on('ready', function() {
 
-  // insert a new row
-  db.book.insert({
+  // Insert a new book and it's author
+  db.books.insert({
     title: 'On the Road',
     author: {
       name: 'Jack Kerouac'
@@ -58,7 +50,8 @@ db.discover().on('ready', function() {
     console.log(book)
     // { id: 1, title: On the Road, author_id: 1 }
 
-    db.author.get(book.author_id, function(err, author) {
+    // Get the author by primary key
+    db.authors.get(book.author_id, function(err, author) {
       console.log(author)
       // { id: 1, name: Jack Kerouac, books: [ 1 ] }
     })
@@ -66,11 +59,25 @@ db.discover().on('ready', function() {
 })
 ```
 
+The example above will work with the following database schema:
+```sql
+CREATE TABLE authors (
+  id SERIAL,
+  name VARCHAR,
+  books INTEGER[],
+  CONSTRAINT author_pkey PRIMARY KEY(id)
+);
+
+CREATE TABLE books (
+  id SERIAL,
+  title VARCHAR,
+  author_id INTEGER,
+  CONSTRAINT book_pkey PRIMARY KEY(id),
+  CONSTRAINT book_fk1 FOREIGN KEY (author_id) REFERENCES authors(id)
+);
+```
+
 ## Documentation
-
-### Initialize
-
-* [`oreo`](#initialize)
 
 ### Database
 
@@ -92,21 +99,6 @@ db.discover().on('ready', function() {
 * [`set`](#set)
 * [`update`](#update)
 
-## Initialize
-
-### oreo( pg, [opts] )
-
-```js
-var oreo = require('oreo')
-var pg = require('pg')
-var db = oreo(pg, {
-  hosts: ['localhost'],
-  port: 5432,
-  name: 'database',
-  user: 'username',
-  pass: 'password'
-})
-```
 
 ## Database
 
@@ -136,7 +128,7 @@ SQL injection safe:
 ```js
 db.execute([
   'select id',
-  'from author',
+  'from authors',
   'where name = :name'
 ], {
   name: 'Jack Kerouac',
@@ -152,7 +144,7 @@ db.execute([
 
 Finds one or more rows:
 ```js
-db.author.find({
+db.authors.find({
   where: ["name ilike 'Jack%'"],
   order: 'name asc',
   offset: 5,
@@ -167,7 +159,7 @@ db.author.find({
 
 Finds exactly one row:
 ```js
-db.author.findOne({
+db.authors.findOne({
   where: ["name ilike 'Jack%'"],
   order: 'name asc',
   offset: 5
@@ -181,7 +173,7 @@ db.author.findOne({
 
 Finds a row by primary key:
 ```js
-db.author.get(1, function(err, author) {
+db.authors.get(1, function(err, author) {
   console.log(author) // { id: 1, name: Jack Kerouak, books: [1] }
 })
 ```
@@ -201,7 +193,7 @@ db.parts.get({
 
 Inserts a new row.
 ```js
-db.book.insert({
+db.books.insert({
   title: 'On the Road',
   author_id: 1
 }, function(err, book) {
@@ -212,7 +204,7 @@ db.book.insert({
 
 Insert multiple rows into related tables in a single transaction:
 ```js
-db.book.insert({
+db.books.insert({
   title: 'On the Road',
   author: {
     name: 'Jack Kerouac'
@@ -246,7 +238,7 @@ db.books.mget(bookIds, function(err, books) {
 
 Populates the related data rows (1-to-1 foreign keys):
 ```js
-db.book.get(1, function(err, book) {
+db.books.get(1, function(err, book) {
   console.log(book)
   // { id: 1, title: On the Road, author_id: 1 }
   book.hydrate(function(err, book) {
@@ -261,7 +253,7 @@ db.book.get(1, function(err, book) {
 
 Saves the modified property values to the database (recursively):
 ```js
-db.book.get(1, function(err, book) {
+db.books.get(1, function(err, book) {
   console.log(book)
   // { id: 1, title: On the Road, author_id: 1 }
   book.author_id = 2
@@ -277,7 +269,7 @@ db.book.get(1, function(err, book) {
 
 Sets multiple property values but does not save yet:
 ```js
-db.book.get(1, function(err, book) {
+db.books.get(1, function(err, book) {
   console.log(book)
   // { id: 1, title: On the Road, author_id: 1 }
   book.set({
@@ -306,26 +298,26 @@ book.update({
 ### Create triggers that automatically populate arrays of 1-to-many foreign keys
 
 ```sql
-CREATE OR REPLACE FUNCTION author_books() RETURNS trigger AS
+CREATE OR REPLACE FUNCTION authors_books() RETURNS trigger AS
 $body$
 BEGIN
   IF TG_OP != 'INSERT' THEN
-    UPDATE author
+    UPDATE authors
     SET books = (
       SELECT ARRAY(
         SELECT id
-        FROM book
+        FROM books
         WHERE author_id = OLD.author_id
         ORDER BY title ASC
       )
     )
     WHERE id = OLD.author_id;
   END IF;
-  UPDATE author
+  UPDATE authors
   SET books = (
     SELECT ARRAY(
       SELECT id
-      FROM book
+      FROM books
       WHERE author_id = NEW.author_id
       ORDER BY title ASC
     )
@@ -338,8 +330,8 @@ LANGUAGE 'plpgsql';
 
 CREATE TRIGGER book_tr1
   AFTER INSERT OR UPDATE OF author_id OR DELETE
-  ON book FOR EACH ROW
-  EXECUTE PROCEDURE author_books();
+  ON books FOR EACH ROW
+  EXECUTE PROCEDURE authors_books();
 ```
 
 ### Create triggers that "replicate" to Redis Foreign Data Wrapper (for high-speed reads)
