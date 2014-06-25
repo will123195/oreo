@@ -10,7 +10,7 @@
 
 - No configuration necessary
 - Automatically discovers tables, primary keys, foreign keys and master/standby servers
-- Ability to "hydrate" foreign keys (and arrays of foreign keys)
+- Ability to "hydrate" foreign keys
 - Object caching / Query memoization
 
 ## Installation
