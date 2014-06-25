@@ -22,7 +22,6 @@ npm install pg
 
 ## Example
 
-Simple usage example:
 ```js
 // Initialize Oreo
 var oreo = require('oreo')
