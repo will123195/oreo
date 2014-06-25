@@ -68,7 +68,7 @@ db.discover().on('ready', function() {
 
 ## Documentation
 
-### initialize
+### Initialize
 
 * [`oreo`](#initialize)
 
@@ -120,16 +120,37 @@ db.discover()
 ```
 
 <a name="execute" />
-### db.execute( query, [opts], [cb] )
+### db.execute( query, [data], [cb] )
 
-Executes SQL query.
+Executes an SQL query.
+```js
+db.execute([
+  'select now()',
+  'as now'
+], function(err, rs) {
+  console.log(rs[0]) // 2014-06-24 21:03:08.652861-04
+})
+```
+
+SQL injection safe:
+```js
+db.execute([
+  'select id',
+  'from author',
+  'where name = :name'
+], {
+  name: 'Jack Kerouac',
+}, function(err, rs) {
+  console.log(rs[0].id) // 1
+})
+```
 
 ## Table
 
 <a name="find" />
 ### db.table.find( opts, [cb] )
 
-Find one or more rows:
+Finds one or more rows:
 ```js
 db.author.find({
   where: ["name ilike 'Jack%'"],
@@ -137,18 +158,74 @@ db.author.find({
   offset: 5,
   limit: 5
 }, function(err, authors) {
-  console.log(authors[0].num_books) // 1
+  console.log(authors[0].id) // 1
 })
 ```
 
 <a name="findOne" />
 ### db.table.findOne( [cb] )
 
+Finds exactly one row:
+```js
+db.author.findOne({
+  where: ["name ilike 'Jack%'"],
+  order: 'name asc',
+  offset: 5
+}, function(err, author) {
+  console.log(author.id) // 1
+})
+```
+
 <a name="get" />
-### db.table.get( id, [cb] )
+### db.table.get( primaryKey, [cb] )
+
+Finds a row by primary key:
+```js
+db.author.get(1, function(err, author) {
+  console.log(author) // { id: 1, name: Jack Kerouak, books: [1] }
+})
+```
+
+Multi-column (composite) primary key:
+```js
+db.parts.get({
+  company: 'Cogswell Cogs',
+  part_no: 'A-12345'
+}, function(err, part) {
+
+})
+```
 
 <a name="insert" />
 ### db.table.insert( data, [cb] )
+
+Inserts a new row.
+```js
+db.book.insert({
+  title: 'On the Road',
+  author_id: 1
+}, function(err, book) {
+  console.log(book)
+  // { id: 1, title: On the Road, author_id: 1 }
+})
+```
+
+Insert new rows into related tables:
+```js
+db.book.insert({
+  title: 'On the Road',
+  author: {
+    name: 'Jack Kerouac'
+  }
+}, function(err, book) {
+  console.log(book)
+  // { id: 1, title: On the Road, author_id: 1 }
+  book.hydrate(function(err, book) {
+    console.log(book)
+    // { id: 1, title: On the Road, author_id: 1, author: { id: 1, name: Jack Kerouac, books: [1] } }
+  })
+})
+```
 
 <a name="mget" />
 ### db.table.mget( ids, [cb] )
@@ -171,7 +248,7 @@ db.author.get(1, function(err, author) {
 <a name="hydrate" />
 ### row.hydrate( [cb] )
 
-Get multi-dimensional (1-to-1) data from the database:
+Gets multi-dimensional (1-to-1) data from the database:
 ```js
 db.book.get(1, function(err, book) {
   console.log(book)
@@ -184,10 +261,36 @@ db.book.get(1, function(err, book) {
 ```
 
 <a name="save" />
-### row.save( [data], [cb] )
+### row.save( [cb] )
+
+Saves the modified property values to the database (recursively):
+```js
+db.book.get(1, function(err, book) {
+  console.log(book)
+  // { id: 1, title: On the Road, author_id: 1 }
+  book.author_id = 2
+  book.save(function(err, book) {
+    console.log(book)
+    // { id: 1, title: On the Road, author_id: 2 }
+  })
+})
+```
 
 <a name="set" />
 ### row.set( data )
+
+Sets multiple property values but does not save yet:
+```js
+db.book.get(1, function(err, book) {
+  console.log(book)
+  // { id: 1, title: On the Road, author_id: 1 }
+  book.set({
+    title: 'New Title',
+    author_id: 2
+  })
+  book.save()
+})
+```
 
 <a name="update" />
 ### row.update( data, [cb] )
@@ -244,4 +347,3 @@ CREATE TRIGGER book_tr1
 ```
 
 ### Create triggers that "replicate" to Redis Foreign Data Wrapper (for high-speed reads)
-
