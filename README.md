@@ -1,4 +1,6 @@
-# oreo
+![Oreo](https://raw.github.com/will123195/oreo/master/oreo.png)
+
+
 
 An intuitive ORM for PostgreSQL with schema detection.
 
@@ -44,7 +46,7 @@ var db = oreo(pg)
 
 // discover tables, primary keys and foreign keys
 db.discover().on('ready', function() {
-  
+
   // insert a new row
   db.book.insert({
     title: 'On the Road',
@@ -53,7 +55,7 @@ db.discover().on('ready', function() {
     }
   }, function(err, book) {
     console.log(book)
-    // { id: 1, title: On the Road, author_id: 1 } 
+    // { id: 1, title: On the Road, author_id: 1 }
 
     db.author.get(book.author_id, function(err, author) {
       console.log(author)
@@ -161,7 +163,7 @@ Get multi-dimensional (1-to-many) data from the database:
 ```js
 db.author.get(1, function(err, author) {
   console.log(author)
-  // { id: 1, name: Jack Kerouak, books: [1] } 
+  // { id: 1, name: Jack Kerouak, books: [1] }
   db.books.mget(author.books, function(err, books) {
     author.books = books
     console.log(author)
@@ -179,7 +181,7 @@ Get multi-dimensional (1-to-1) data from the database:
 ```js
 db.book.get(1, function(err, book) {
   console.log(book)
-  // { id: 1, title: On the Road, author_id: 1 } 
+  // { id: 1, title: On the Road, author_id: 1 }
   book.hydrate(function(err, book) {
     console.log(book)
     // { id: 1, title: On the Road, author_id: 1, author: { id: 1, name: Jack Kerouac, books: [1] } }
@@ -202,7 +204,7 @@ book.update({
   title: 'New Title'
 }, function(err, book) {
   console.log(book)
-  // { id: 1, title: New Title, author_id: 1 } 
+  // { id: 1, title: New Title, author_id: 1 }
 })
 ```
 
@@ -242,8 +244,8 @@ $body$
 LANGUAGE 'plpgsql';
 
 CREATE TRIGGER book_tr1
-  AFTER INSERT OR UPDATE OF author_id OR DELETE 
-  ON book FOR EACH ROW 
+  AFTER INSERT OR UPDATE OF author_id OR DELETE
+  ON book FOR EACH ROW
   EXECUTE PROCEDURE author_books();
 ```
 
