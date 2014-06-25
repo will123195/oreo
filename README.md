@@ -9,7 +9,7 @@
 ## Features
 
 - No configuration necessary
-- Automatically discovers tables, primary keys, foreign keys and master/standby servers
+- Automatically discovers tables, primary keys, foreign keys and master/read-only servers
 - Ability to "hydrate" foreign keys
 - Object caching & memoization
 
