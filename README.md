@@ -119,13 +119,6 @@ Adds a property to the `db` object for every table in the database.
 db.discover()
 ```
 
-You may specify a constructor which will be executed by the [`get`](#get) method.  This is useful if you need dynamically calculated properties, i.e. calculate `age` based on `birthdate`:
-```js
-db.author._meta.constructor = function() {
-  this.num_books = this.books.length
-}
-```
-
 <a name="execute" />
 ### db.execute( query, [opts], [cb] )
 
