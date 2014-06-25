@@ -24,9 +24,7 @@ npm install pg
 
 Simple usage example:
 ```js
-//
 // Initialize Oreo
-//
 var oreo = require('oreo')
 var db = oreo({
   driver: 'pg',
