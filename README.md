@@ -228,18 +228,14 @@ db.book.insert({
 ```
 
 <a name="mget" />
-### db.table.mget( ids, [cb] )
+### db.table.mget( primaryKeys, [cb] )
 
-Get multi-dimensional (1-to-many) data from the database:
+Gets many rows from the database by primary key:
 ```js
-db.author.get(1, function(err, author) {
-  console.log(author)
-  // { id: 1, name: Jack Kerouak, books: [1] }
-  db.books.mget(author.books, function(err, books) {
-    author.books = books
-    console.log(author)
-    // { id: 1, name: Jack Kerouac, books: [ { id: 1, title: On the Road, author_id: 1 } ] }
-  })
+var bookIds = [1]
+db.books.mget(bookIds, function(err, books) {
+  console.log(books)
+  // [ { id: 1, title: On the Road, author_id: 1 } ]
 })
 ```
 
