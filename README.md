@@ -210,7 +210,7 @@ db.book.insert({
 })
 ```
 
-Insert new rows into related tables:
+Insert multiple rows into related tables in a single transaction:
 ```js
 db.book.insert({
   title: 'On the Road',
