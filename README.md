@@ -100,18 +100,26 @@ CREATE TABLE books (
 ## Database
 
 <a name="discover" />
-### db.discover( [cb] )
+### db.discover( )
 
-Adds a property to the `db` object for every table in the database.
+Identifies the schema in the database and adds a `Table` object to the `db` for
+each table in the database.  Emits the `ready` event when completed.
 
 ```js
-db.discover()
+db.discover().on('ready', function() {
+  // db.authors
+  // db.books
+})
 ```
 
 <a name="execute" />
 ### db.execute( query, [data], [cb] )
 
-Executes an SQL query.
+Executes an arbitrary SQL query.
+- **query** {String|Array} the SQL statement
+- **data** {Object} *optional* parameterized query data
+- **cb** {Function} *optional* callback(err, results)
+
 ```js
 db.execute([
   'select now()',
@@ -121,7 +129,7 @@ db.execute([
 })
 ```
 
-SQL injection safe:
+Parameterized query (SQL injection safe):
 ```js
 db.execute([
   'select id',
@@ -131,6 +139,17 @@ db.execute([
   name: 'Jack Kerouac',
 }, function(err, rs) {
   console.log(rs[0].id) // 1
+})
+```
+
+If no callback is provided a stream is emitted:
+```js
+db.execute('select now()')
+.on('data', function(row) {
+
+})
+.on('end', function() {
+
 })
 ```
 
@@ -151,8 +170,10 @@ db.authors.find({
 })
 ```
 
+If no callback is provided a stream is emitted.
+
 <a name="findOne" />
-### db.table.findOne( [cb] )
+### db.table.findOne( opts, [cb] )
 
 Finds exactly one row:
 ```js
@@ -164,6 +185,8 @@ db.authors.findOne({
   console.log(author.id) // 1
 })
 ```
+
+If no callback is provided a stream is emitted.
 
 <a name="get" />
 ### db.table.get( primaryKey, [cb] )
@@ -227,6 +250,8 @@ db.books.mget(bookIds, function(err, books) {
   // [ { id: 1, title: On the Road, author_id: 1 } ]
 })
 ```
+
+If no callback is provided a stream is emitted.
 
 ## Row
 
