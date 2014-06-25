@@ -22,7 +22,6 @@ npm install pg
 
 ## Example
 
-Suppose we have the following schema:
 ```sql
 CREATE TABLE author (
   id SERIAL,
@@ -103,9 +102,9 @@ var pg = require('pg')
 var db = oreo(pg, {
   hosts: ['localhost'],
   port: 5432,
-  name: 'postgres',
-  user: 'postgres',
-  pass: 'postgres'
+  name: 'database',
+  user: 'username',
+  pass: 'password'
 })
 ```
 
