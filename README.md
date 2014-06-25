@@ -78,6 +78,7 @@ CREATE TABLE books (
 
 ### Database
 
+* [`oreo`](#instantiate)
 * [`discover`](#discover)
 * [`execute`](#execute)
 
@@ -98,6 +99,23 @@ CREATE TABLE books (
 
 
 ## Database
+
+<a name="instantiate" />
+### oreo( opts )
+
+Instantiates the `db` object and configures the database connection string.
+
+```js
+var oreo = require('oreo')
+var db = oreo({
+  driver: 'pg',
+  hosts: ['localhost'],
+  port: 5432,
+  name: 'database',
+  user: 'username',
+  pass: 'password'
+})
+```
 
 <a name="discover" />
 ### db.discover( )
