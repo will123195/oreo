@@ -11,7 +11,7 @@
 - No configuration necessary
 - Automatically discovers tables, primary keys, foreign keys and master/standby servers
 - Ability to "hydrate" foreign keys
-- Object caching / Query memoization
+- Object caching & memoization
 
 ## Installation
 
