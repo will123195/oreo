@@ -244,7 +244,7 @@ db.books.mget(bookIds, function(err, books) {
 <a name="hydrate" />
 ### row.hydrate( [cb] )
 
-Gets multi-dimensional (1-to-1) data from the database:
+Populates the related data rows (1-to-1 foreign keys):
 ```js
 db.book.get(1, function(err, book) {
   console.log(book)
