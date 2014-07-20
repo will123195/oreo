@@ -117,9 +117,9 @@ oreo.prototype.discover = function(cb) {
       self[table_name] = new Table(table_name, self.execute, cb)
       self[table_name].orm = self
 
-      if (true) {
-        self[table_name] = wrap(self[table_name])
-      }
+      // if (true) {
+      //   self[table_name] = wrap(self[table_name])
+      // }
 
     }, function(err) {
       if (err) return cb(err)
