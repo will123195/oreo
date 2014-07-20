@@ -168,13 +168,16 @@ db.execute([
 })
 ```
 
-If no callback is provided a stream is emitted:
+If no callback is provided a stream is returned:
 ```js
 db.execute('select now()')
 .on('data', function(row) {
 
 })
-.on('end', function() {
+.on('error', function(error) {
+
+})
+.on('end', function(result) {
 
 })
 ```
@@ -196,7 +199,7 @@ db.authors.find({
 })
 ```
 
-If no callback is provided a stream is emitted.
+If no callback is provided a stream is returned.
 
 <a name="findOne" />
 ### db.table.findOne( opts, [cb] )
@@ -212,7 +215,7 @@ db.authors.findOne({
 })
 ```
 
-If no callback is provided a stream is emitted.
+If no callback is provided a stream is returned.
 
 <a name="get" />
 ### db.table.get( primaryKey, [cb] )
@@ -277,7 +280,7 @@ db.books.mget(bookIds, function(err, books) {
 })
 ```
 
-If no callback is provided a stream is emitted.
+If no callback is provided a stream is returned.
 
 ## Row
 
@@ -291,7 +294,12 @@ db.books.get(1, function(err, book) {
   // { id: 1, title: On the Road, author_id: 1 }
   book.hydrate(function(err, book) {
     console.log(book)
-    // { id: 1, title: On the Road, author_id: 1, author: { id: 1, name: Jack Kerouac, books: [1] } }
+    // {
+    //   id: 1,
+    //   title: On the Road,
+    //   author_id: 1,
+    //   $author_id: { id: 1, name: Jack Kerouac, books: [1] }
+    // }
   })
 })
 ```
