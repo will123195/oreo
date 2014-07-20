@@ -182,8 +182,23 @@ Table.prototype.get = function(id, cb) {
       console.log(this._meta.name + ':', this);
     }
 
-    row.save = function() {
+    row.set = function(data) {
+      var self = this
+      Object.keys(data).forEach(function(field) {
+        self._data[field] = self[field]
+        self[field] = data[field]
+      })
+    }
 
+    row.save = function(cb) {
+      var self = this
+      var update = {}
+      Object.keys(self._data).forEach(function(field) {
+        if (self[field] !== self._data[field]) {
+          update[field] = self[field]
+        }
+      })
+      self.update(update, cb)
     }
 
     // TODO: ability to hydrate using composite primary key
@@ -199,13 +214,12 @@ Table.prototype.get = function(id, cb) {
             where " + fk.foreign_column_name + " = " + self[fk.column_name] + " \
           "
           query(sql, function(err, rs) {
-            //self[property] = rs[0]
             if (rs[0]) {
               table.orm[fkTable].get(rs[0].id, function(err, obj) {
                 self[property] = obj
+                done(err)
               })
             }
-            done(err)
           })
         }, function(err) {
           cb(err, self)

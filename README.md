@@ -88,7 +88,7 @@ CREATE TABLE books (
 * [`findOne`](#findOne)
 * [`get`](#get)
 * [`insert`](#insert)
-* [`mget`](#mget)
+* [`mget`](#mget) (not yet implemented)
 
 ### Row
 
@@ -258,7 +258,7 @@ db.books.insert({
 ```
 
 <a name="mget" />
-### db.table.mget( primaryKeys, [cb] )
+### db.table.mget( primaryKeys, [cb] ) NOT YET IMPLEMENTED
 
 Gets many rows from the database by primary key:
 ```js
