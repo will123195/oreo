@@ -1,7 +1,7 @@
 var pg = require('pg')
 var async = require('async')
 var query
-var wrap = require('thunkify-wrap')
+//var wrap = require('thunkify-wrap')
 // var EventEmitter = require('events').EventEmitter
 // var util = require('util')
 

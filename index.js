@@ -1,7 +1,7 @@
 var pg = require('pg')
 var async = require('async')
 var Table = require('./table')
-var wrap = require('thunkify-wrap')
+//var wrap = require('thunkify-wrap')
 // var EventEmitter = require('events').EventEmitter
 //  var util = require('util')
 
@@ -14,9 +14,9 @@ var oreo = module.exports = function oreo(opts) {
   self._tables = []
   this.execute = query()
 
-  if (true) {
-    this.exec = wrap(this.execute)
-  }
+  // if (true) {
+  //   this.exec = wrap(this.execute)
+  // }
 
   function query() {
 
