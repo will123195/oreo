@@ -24,11 +24,11 @@
   },
   "homepage": "https://github.com/will123195/oreo",
   "devDependencies": {
-    "assert": "~1.1.1",
     "mocha": "~1.20.1",
     "pg": "~3.4.0"
   },
   "dependencies": {
-    "async": "~0.9.0"
+    "async": "~0.9.0",
+    "thunkify-wrap": "~1.0.1"
   }
 }
