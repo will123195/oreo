@@ -14,6 +14,13 @@ var Table = module.exports = function Table(tableName, q, cb) {
   var self = this
 
   this.name = tableName
+
+  this._methods = {}
+  Object.defineProperty(self, '_methods', {
+    enumerable: false,
+    writable: true
+  })
+
   query = q
 
   async.parallel([
@@ -177,6 +184,11 @@ Table.prototype.get = function(id, cb) {
     if (self.construct && typeof self.construct === 'function') {
       self.construct.call(row)
     }
+
+    // bind user defined row methods to this row instance
+    Object.keys(table._methods).forEach(function(method) {
+      row[method] = table._methods[method].bind(row)
+    })
 
     row.dump = function() {
       console.log(this._meta.name + ':', this);

@@ -147,6 +147,18 @@ describe('oreo', function() {
   })
 
 
+  it('should bind row methods', function(done) {
+    db.books._methods.getTitle = function() {
+      return this.title
+    }
+
+    db.books.get(1, function(err, book) {
+      ok(!err, err)
+      ok(book.getTitle() === book.title, 'did not get title')
+      done()
+    })
+  })
+
 
 })
 

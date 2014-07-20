@@ -123,10 +123,18 @@ var db = oreo({
 Identifies the schema in the database and adds a `Table` object to the `db` for
 each table in the database.  Emits the `ready` event when completed.
 
+There is no need for "model definitions" but you can still specify methods that will
+be bound to each `row` instance.
+
 ```js
 db.discover().on('ready', function() {
   // db.authors
   // db.books
+
+  db.books._methods.getTitle = function() {
+    return this.title
+  }
+
 })
 ```
 
