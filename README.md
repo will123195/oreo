@@ -70,7 +70,7 @@ CREATE TABLE books (
   title VARCHAR,
   author_id INTEGER,
   CONSTRAINT book_pkey PRIMARY KEY(id),
-  CONSTRAINT book_fk1 FOREIGN KEY (author_id) REFERENCES authors(id)
+  CONSTRAINT author FOREIGN KEY (author_id) REFERENCES authors(id)
 );
 ```
 
@@ -298,7 +298,7 @@ db.books.get(1, function(err, book) {
     //   id: 1,
     //   title: On the Road,
     //   author_id: 1,
-    //   $author_id: { id: 1, name: Jack Kerouac, books: [1] }
+    //   author: { id: 1, name: Jack Kerouac, books: [1] }
     // }
   })
 })

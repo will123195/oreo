@@ -218,7 +218,7 @@ Table.prototype.get = function(id, cb) {
       var self = this
       if (self._meta.fk) {
         async.eachSeries(self._meta.fk, function(fk, done) {
-          var property = '$' + fk.column_name
+          var property = fk.constraint_name
           var fkTable = fk.foreign_table_name
           var sql = "\
             select id \

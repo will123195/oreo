@@ -104,7 +104,7 @@ describe('oreo', function() {
     db.books.get(1, function(err, book) {
       ok(!err, err)
       book.hydrate(function(err, book) {
-        ok(book.$author_id.id === 1, 'did not hydrate author')
+        ok(book.author.id === 1, 'did not hydrate author')
         ok(book.id === 1, 'weird')
         done()
       })

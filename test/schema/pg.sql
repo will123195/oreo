@@ -14,5 +14,5 @@ CREATE TABLE books (
   title VARCHAR,
   author_id INTEGER,
   CONSTRAINT book_pkey PRIMARY KEY(id),
-  CONSTRAINT book_fk1 FOREIGN KEY (author_id) REFERENCES authors(id)
+  CONSTRAINT author FOREIGN KEY (author_id) REFERENCES authors(id)
 );
