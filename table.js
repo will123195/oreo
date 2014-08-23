@@ -1,6 +1,7 @@
 var pg = require('pg')
 var async = require('async')
 var query
+var isInteger = require('is-integer')
 //var wrap = require('thunkify-wrap')
 // var EventEmitter = require('events').EventEmitter
 // var util = require('util')
@@ -66,20 +67,47 @@ Table.prototype.find = function(params, cb) {
     'FROM "' + this.name + '"',
     'WHERE true'
   ];
-  // params.where is an array of strings
-  // TODO where string
-  // TODO where object
+
   if (params) {
+
+    // where
     if (isArray(params.where)) {
       params.where.forEach(function(val, i) {
         if (isString(val)) {
-          sql.push("AND " + val);
+          sql.push('AND ' + val)
         }
       });
+    } else if (isString(params.where)) {
+      sql.push('AND ' + params.where)
+    } else if (params.where) {
+      Object.keys(params.where).forEach(function(property) {
+        sql.push('AND ' + property + " = '" + params.where[property] + "'")
+      })
     }
+
+    // order
+    if (params.order) {
+      var orderBy = ''
+      if (isString(params.order)) {
+        orderBy = params.order
+      } else if (isArray(params.order)) {
+        params.order = params.order.join(', ')
+      }
+      if (params.order) {
+        sql.push('ORDER BY ' + params.order)
+      }
+    }
+
+    // limit
     if (params.limit) {
-      sql.push('LIMIT ' + params.limit);
+      sql.push('LIMIT ' + params.limit)
     }
+
+    // offset
+    if (isInteger(params.offset)) {
+      sql.push('OFFSET ' + params.offset)
+    }
+
   }
   sql = sql.join('\n');
   var self = this;

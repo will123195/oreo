@@ -1,6 +1,9 @@
 var pg = require('pg')
 var async = require('async')
 var Table = require('./table')
+
+var debug = false
+
 //var wrap = require('thunkify-wrap')
 // var EventEmitter = require('events').EventEmitter
 //  var util = require('util')
@@ -48,6 +51,11 @@ var oreo = module.exports = function oreo(opts) {
           cb(err)
           return console.error('error fetching client from pool', err)
         }
+
+        if (debug) {
+          console.log(sql)
+        }
+
         client.query({
           text: sql
           //values: values

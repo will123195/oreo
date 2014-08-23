@@ -63,9 +63,9 @@ describe('oreo', function() {
   })
 
 
-  it('should find', function(done) {
+  it('should find (where string)', function(done) {
     db.authors.find({
-      where: "name = 'Jack'"
+      where: "name = 'Jack Kerouac'"
     }, function(err, authors) {
       ok(!err, err)
       ok(authors[0].id === 1, 'did not find author')
@@ -74,9 +74,48 @@ describe('oreo', function() {
   })
 
 
+  it('should find (where array)', function(done) {
+    db.authors.find({
+      where: ["name = 'Jack Kerouac'"]
+    }, function(err, authors) {
+      ok(!err, err)
+      ok(authors[0].id === 1, 'did not find author')
+      done()
+    })
+  })
+
+
+  it('should find (where object)', function(done) {
+    db.authors.find({
+      where: { 
+        name: 'Jack Kerouac'
+      }
+    }, function(err, authors) {
+      ok(!err, err)
+      ok(authors[0].id === 1, 'did not find author')
+      done()
+    })
+  })
+
+
+  it('should order by', function(done) {
+    done()
+  })
+
+
+  it('should limit', function(done) {
+    done()
+  })
+
+
+  it('should offset', function(done) {
+    done()
+  })
+
+
   it('should findOne', function(done) {
     db.authors.findOne({
-      where: "name = 'Jack'"
+      where: "name = 'Jack Kerouac'"
     }, function(err, author) {
       ok(!err, err)
       ok(author.id === 1, 'did not findOne author')
@@ -88,7 +127,7 @@ describe('oreo', function() {
   it('should update', function(done) {
     db.authors.get(1, function(err, author) {
       ok(!err, err)
-      var new_name = 'Jack'
+      var new_name = 'Jack Kerouac'
       author.update({
         name: new_name
       }, function(err, author) {
@@ -116,7 +155,7 @@ describe('oreo', function() {
     db.authors.get(1, function(err, author) {
       ok(!err, err)
       var old_name = author.name
-      var new_name = 'Jack'
+      var new_name = 'Jack Kerouac'
       author.set({
         name: new_name
       })
