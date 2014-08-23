@@ -48,7 +48,17 @@ describe('oreo', function() {
       }, function(err, book) {
         ok(!err, err)
         ok(book.id === 1, 'did not insert book')
-        done()
+
+        db.ratings.insert({
+          author_id: 1,
+          book_id: 1,
+          rating: 10
+        }, function(err, rating) {
+          ok(!err, err)
+          ok(rating.rating === 10, 'did not insert rating')
+          done()
+        })
+
       })
     })
   })
@@ -58,6 +68,15 @@ describe('oreo', function() {
     db.authors.get(1, function(err, author) {
       ok(!err, err)
       ok(author.id === 1, 'did not get author')
+      done()
+    })
+  })
+
+
+  it('should get (composite primary key)', function(done) {
+    db.ratings.get([1, 1], function(err, rating) {
+      ok(!err, err)
+      ok(rating.rating === 10, 'did not get rating')
       done()
     })
   })

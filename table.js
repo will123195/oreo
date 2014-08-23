@@ -2,21 +2,21 @@ var pg = require('pg')
 var async = require('async')
 var query
 var isInteger = require('is-integer')
+var Row = require('./row')
 //var wrap = require('thunkify-wrap')
 // var EventEmitter = require('events').EventEmitter
 // var util = require('util')
 
 
 var Table = module.exports = function Table(tableName, q, cb) {
-  if (!(this instanceof Table)) {
+  var self = this
+  if (!(self instanceof Table)) {
     return new Table(tableName, q, cb)
   }
 
-  var self = this
+  self.name = tableName
 
-  this.name = tableName
-
-  this._methods = {}
+  self._methods = {}
   Object.defineProperty(self, '_methods', {
     enumerable: false,
     writable: true
@@ -26,7 +26,8 @@ var Table = module.exports = function Table(tableName, q, cb) {
 
   async.parallel([
     self.getColumns.bind(self),
-    self.getForeignKeys.bind(self)
+    self.getForeignKeys.bind(self),
+    self.getPrimaryKeyDefinition.bind(self)
   ],
   function(err) {
     cb(err)
@@ -141,7 +142,7 @@ Table.prototype.findOne = function(params, cb) {
  */
 Table.prototype.getColumns = function(cb) {
   cb = cb || function(){}
-  self = this
+  var self = this
   // get the columns
   var sql = "\
     SELECT \
@@ -153,7 +154,38 @@ Table.prototype.getColumns = function(cb) {
   query(sql, function(err, rs) {
     if (err) return cb(err)
     self.columns = rs
-    cb()
+    cb(null)
+  })
+}
+
+
+/**
+ *
+ */
+Table.prototype.getPrimaryKeyDefinition = function(cb) {
+  var self = this
+  var sql = "\
+    SELECT \
+      c.relname, \
+      pg_catalog.pg_get_constraintdef(con.oid, true) as def, \
+      con.conname, \
+      con.conkey \
+    FROM \
+      pg_catalog.pg_class c, \
+      pg_catalog.pg_index i \
+    LEFT JOIN pg_catalog.pg_constraint con ON (conrelid = i.indrelid AND conindid = i.indexrelid) \
+    WHERE c.oid = i.indrelid \
+    AND con.contype = 'p' \
+    AND c.relname = '" + this.name + "' \
+    ORDER BY i.indisprimary DESC, i.indisunique DESC \
+  "
+  query(sql, function(err, rs) {
+    if (err) return cb(err)
+    var regExp = /\(([^)]+)\)/;
+    var matches = regExp.exec(rs[0].def);
+    var pk = matches[1].split(', ')
+    self.primaryKey = pk
+    cb(null)
   })
 }
 
@@ -183,107 +215,23 @@ Table.prototype.getForeignKeys = function(cb) {
   query(sql, function(err, rs) {
     if (err) return cb(err)
     self.fk = rs
-    cb()
+    cb(null)
   })
 }
 
 
-Table.prototype.get = function(id, cb) {
-  var self = this
-  var table = this
+Table.prototype.get = function(key, cb) {
+  var self = table = this
+  var pkWhere = self.getPrimaryKeyWhereClause(key)
   var sql = "\
     SELECT *\
-    FROM \"" + this.name + "\" \
-    WHERE id = " + id + " \
+    FROM \"" + self.name + "\" \
+    WHERE " + pkWhere + " \
   "
   query(sql, function(err, rs) {
     if (err) return cb(err)
-    var row = rs[0]
-    Object.defineProperty(row, '_meta', {
-        enumerable: false,
-        writable: true
-    })
-    Object.defineProperty(row, '_data', {
-        enumerable: false,
-        writable: true
-    })
-    row._meta = self
-    row._data = JSON.parse(JSON.stringify(row))
-    if (self.construct && typeof self.construct === 'function') {
-      self.construct.call(row)
-    }
 
-    // bind user defined row methods to this row instance
-    Object.keys(table._methods).forEach(function(method) {
-      row[method] = table._methods[method].bind(row)
-    })
-
-    row.dump = function() {
-      console.log(this._meta.name + ':', this);
-    }
-
-    row.set = function(data) {
-      var self = this
-      Object.keys(data).forEach(function(field) {
-        self._data[field] = self[field]
-        self[field] = data[field]
-      })
-    }
-
-    row.save = function(cb) {
-      var self = this
-      var update = {}
-      Object.keys(self._data).forEach(function(field) {
-        if (self[field] !== self._data[field]) {
-          update[field] = self[field]
-        }
-      })
-      self.update(update, cb)
-    }
-
-    // TODO: ability to hydrate using composite primary key
-    row.hydrate = function(cb) {
-      var self = this
-      if (self._meta.fk) {
-        async.eachSeries(self._meta.fk, function(fk, done) {
-          var property = fk.constraint_name
-          var fkTable = fk.foreign_table_name
-          var sql = "\
-            select id \
-            from \"" + fkTable + "\" \
-            where " + fk.foreign_column_name + " = " + self[fk.column_name] + " \
-          "
-          query(sql, function(err, rs) {
-            if (rs[0]) {
-              table.orm[fkTable].get(rs[0].id, function(err, obj) {
-                self[property] = obj
-                done(err)
-              })
-            }
-          })
-        }, function(err) {
-          cb(err, self)
-        })
-      }
-    }
-
-    row.update = function(data, cb) {
-      // remove undefined values
-      data = JSON.parse(JSON.stringify(data))
-      var set = []
-      Object.keys(data).forEach(function(field) {
-        set.push(field + ' = :' + field)
-      })
-      var sql = [
-        'UPDATE "' + this._meta.name + '"',
-        'SET ' + set.join(',\n'),
-        'WHERE "' + this._meta.name + '".id = ' + this.id,
-        'RETURNING *'
-      ].join('\n');
-      query(sql, data, function(err, rs) {
-        return cb(err, rs ? rs[0] : null)
-      })
-    }
+    var row = new Row(rs[0], table)
 
     //row = wrap(row)
 
@@ -304,6 +252,32 @@ Table.prototype.hydrateArray = function(keys, cb) {
   }, function(err) {
     cb(err, keys)
   })
+}
+
+
+/**
+ * @param array|int|string key the primary key. use array for composite primary key
+ */
+Table.prototype.getPrimaryKeyWhereClause = function(key) {
+  var self = this
+  var criteria = ''
+  if (self.primaryKey.length > 1) {
+    if (!isArray(key)) {
+      throw new Error('"' + self.name + '" has a composite primary key so an array is required.')
+    }
+    self.primaryKey.forEach(function(field, i) {
+      if (criteria.length > 0) {
+        criteria += ' AND '
+      }
+      criteria += '"' + self.name + '"."' + field + '"' + " = '" + key[i] + "'"
+    })
+  } else {
+    if (isArray(key)) {
+      key = key[0]
+    }
+    criteria = '"' + self.name + '"."' + self.primaryKey[0] + '"' + " = '" + key + "'"
+  }
+  return criteria;
 }
 
 
