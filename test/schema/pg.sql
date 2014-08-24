@@ -1,6 +1,7 @@
 DROP TABLE IF EXISTS authors CASCADE;
 DROP TABLE IF EXISTS books CASCADE;
 DROP TABLE IF EXISTS ratings CASCADE;
+DROP TABLE IF EXISTS samples CASCADE;
 
 
 CREATE TABLE authors (
@@ -25,4 +26,13 @@ CREATE TABLE ratings (
   rating INTEGER,
   CONSTRAINT ratings_pkey PRIMARY KEY(author_id, book_id),
   CONSTRAINT ratings_rating_key UNIQUE(rating)
+);
+
+CREATE TABLE samples (
+  id SERIAL,
+  author_id INTEGER,
+  book_id INTEGER,
+  description VARCHAR,
+  CONSTRAINT samples_pkey PRIMARY KEY(id),
+  CONSTRAINT rating FOREIGN KEY (author_id, book_id) REFERENCES ratings(author_id, book_id)
 );

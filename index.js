@@ -70,8 +70,8 @@ oreo.prototype.discover = function(cb) {
       self._tables.forEach(function(table) {
         if (self[table].fk) {
           self[table].fk.forEach(function(fk) {
-            self[fk.foreign_table_name].many = self[fk.foreign_table_name].many || []
-            self[fk.foreign_table_name].many.push(fk)
+            self[fk.foreignTable].many = self[fk.foreignTable].many || []
+            self[fk.foreignTable].many.push(fk)
           })
         }
       })

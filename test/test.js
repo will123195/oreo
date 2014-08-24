@@ -183,6 +183,24 @@ describe('oreo', function() {
   })
 
 
+  it('should hydrate composite foreign key', function(done) {
+    db.samples.insert({
+      author_id: 1,
+      book_id: 1,
+      description: 'this is an example'
+    }, function(err, data) {
+      ok(!err, err)
+      db.samples.get(data.id, function(err, sample) {
+        sample.hydrate(function(err, sample) {
+          ok(sample.rating.rating === 10, 'did not hydrate sample')
+          ok(sample.id === 1, 'wrong sample')
+          done()
+        })
+      })
+    })
+  })
+
+
   it('should set', function(done) {
     db.authors.get(1, function(err, author) {
       ok(!err, err)

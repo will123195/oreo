@@ -15,6 +15,7 @@ var Table = module.exports = function Table(tableName, q, cb) {
   }
 
   self.name = tableName
+  self.fk = []
 
   self._methods = {}
   Object.defineProperty(self, '_methods', {
@@ -201,24 +202,36 @@ Table.prototype.getForeignKeys = function(cb) {
   self = this
   // get the foreign keys
   var sql = "\
-    SELECT \
-      tc.constraint_name, \
-      tc.table_name, \
-      kcu.column_name, \
-      ccu.table_name AS foreign_table_name, \
-      ccu.column_name AS foreign_column_name \
-    FROM information_schema.table_constraints AS tc \
-    JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name \
-    JOIN information_schema.constraint_column_usage AS ccu ON ccu.constraint_name = tc.constraint_name \
-    WHERE constraint_type = 'FOREIGN KEY' \
-    AND tc.table_name = '" + this.name + "' \
+    SELECT conname, \
+      pg_catalog.pg_get_constraintdef(r.oid, true) as condef \
+    FROM pg_catalog.pg_constraint r \
+    WHERE r.conrelid = (SELECT oid FROM pg_class WHERE relname = '" + self.name + "') \
+    AND r.contype = 'f' ORDER BY 1 \
   "
   query(sql, function(err, rs) {
     if (err) return cb(err)
-    self.fk = rs
+    rs.forEach(function(r) {
+      // parse r.condef
+      var regExp = /\(([^)]+)\) REFERENCES (.+)\(([^)]+)\)/;
+      var matches = regExp.exec(r.condef);
+      self.fk.push({
+        constraintName: r.conname,
+        columns: matches[1].split(', '),
+        foreignTable: matches[2],
+        foreignColumns: matches[3].split(', ')
+      })
+    })
     cb(null)
   })
 }
+
+
+  // { 
+  //   constraint_name: 'rating',
+  //   column_name: 'book_id',
+  //   foreign_table_name: 'ratings',
+  //   foreign_column_name: 'book_id' 
+  // }
 
 
 Table.prototype.get = function(key, cb) {

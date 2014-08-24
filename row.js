@@ -56,25 +56,19 @@ Row.prototype.save = function(cb) {
   self.update(update, cb)
 }
 
-// TODO: ability to hydrate using composite primary key
 Row.prototype.hydrate = function(cb) {
   var self = this
   if (self._meta.fk) {
     async.eachSeries(self._meta.fk, function(fk, done) {
-      var property = fk.constraint_name
-      var fkTable = fk.foreign_table_name
-      var sql = [
-        'SELECT "' + table.primaryKey.join('", "') + '"',
-        'FROM "' + fkTable + '"',
-        'WHERE "' + fk.foreign_column_name + '" = \'' + self[fk.column_name] + '\''
-      ]
-      self._meta.orm.execute(sql, function(err, rs) {
-        if (rs[0]) {
-          table.orm[fkTable].get(rs[0], function(err, obj) {
-            self[property] = obj
-            done(err)
-          })
-        }
+      var property = fk.constraintName
+      var fkTable = fk.foreignTable
+      var fkPk = {}
+      fk.columns.forEach(function(column, i) {
+        fkPk[fk.foreignColumns[i]] = self[column]
+      })
+      table.orm[fkTable].get(fkPk, function(err, obj) {
+        self[property] = obj
+        done(err)
       })
     }, function(err) {
       cb(err, self)
@@ -85,9 +79,9 @@ Row.prototype.hydrate = function(cb) {
 
 Row.prototype.getPrimaryKey = function() {
   var self = this
-  var pk = []
+  var pk = {}
   table.primaryKey.forEach(function(field) {
-    pk.push(self[field])
+    pk[field] = self[field]
   })
   return pk
 }
