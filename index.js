@@ -1,6 +1,6 @@
-var query = require('./query')
+var query = require('./lib/query')
 var async = require('async')
-var Table = require('./table')
+var Table = require('./lib/table')
 
 var debug = false
 
