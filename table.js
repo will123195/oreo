@@ -62,10 +62,11 @@ Table.prototype.insert = function(data, cb) {
  * @param  {Object}   params
  */
 Table.prototype.find = function(params, cb) {
-  params = params || {};
+  var self = this
+  params = params || {}
   var sql = [
-    'SELECT "' + this.name + '".id ',
-    'FROM "' + this.name + '"',
+    'SELECT "' + self.primaryKey.join('", "') + '"',
+    'FROM "' + self.name + '"',
     'WHERE true'
   ];
 
@@ -115,7 +116,7 @@ Table.prototype.find = function(params, cb) {
   query(sql, function(err, rs) {
     var objects = [];
     async.eachSeries(rs, function(r, done) {
-      self.get(r.id, function(err, obj) {
+      self.get(r, function(err, obj) {
         objects.push(obj)
         done(err)
       })
@@ -256,27 +257,28 @@ Table.prototype.hydrateArray = function(keys, cb) {
 
 
 /**
- * @param array|int|string key the primary key. use array for composite primary key
+ * @param array|object|int|string key the primary key. use array for composite primary key
  */
 Table.prototype.getPrimaryKeyWhereClause = function(key) {
   var self = this
   var criteria = ''
-  if (self.primaryKey.length > 1) {
-    if (!isArray(key)) {
-      throw new Error('"' + self.name + '" has a composite primary key so an array is required.')
-    }
-    self.primaryKey.forEach(function(field, i) {
-      if (criteria.length > 0) {
-        criteria += ' AND '
-      }
-      criteria += '"' + self.name + '"."' + field + '"' + " = '" + key[i] + "'"
-    })
-  } else {
-    if (isArray(key)) {
-      key = key[0]
-    }
-    criteria = '"' + self.name + '"."' + self.primaryKey[0] + '"' + " = '" + key + "'"
+  if (!isArray(key) && !isObject(key)) {
+    var temp = key
+    key = []
+    key[0] = temp
   }
+  self.primaryKey.forEach(function(field, i) {
+    if (isArray(key)) {
+      key[field] = key[i]
+    }
+    if (criteria.length > 0) {
+      criteria += ' AND '
+    }
+    if (!key[field]) {
+      throw new Error('Invalid value specfied for "' + self.name + '" composite primary key.')
+    }
+    criteria += '"' + self.name + '"."' + field + '"' + " = '" + key[field] + "'"
+  })
   return criteria;
 }
 
@@ -292,5 +294,9 @@ function isArray(obj) {
 
 function isString(obj) {
   return toString.call(obj) === '[object String]'
+}
+
+function isObject(obj) {
+  return toString.call(obj) === '[object Object]'
 }
 

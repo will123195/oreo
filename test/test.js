@@ -117,6 +117,19 @@ describe('oreo', function() {
   })
 
 
+  it('should find (composite primary key)', function(done) {
+    db.ratings.find({
+      where: { 
+        rating: 10
+      }
+    }, function(err, ratings) {
+      ok(!err, err)
+      ok(ratings[0].author_id === 1, 'did not find rating')
+      done()
+    })
+  })
+
+
   it('should order by', function(done) {
     done()
   })

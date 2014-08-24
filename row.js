@@ -63,14 +63,14 @@ Row.prototype.hydrate = function(cb) {
     async.eachSeries(self._meta.fk, function(fk, done) {
       var property = fk.constraint_name
       var fkTable = fk.foreign_table_name
-      var sql = "\
-        select id \
-        from \"" + fkTable + "\" \
-        where " + fk.foreign_column_name + " = " + self[fk.column_name] + " \
-      "
+      var sql = [
+        'SELECT "' + table.primaryKey.join('", "') + '"',
+        'FROM "' + fkTable + '"',
+        'WHERE "' + fk.foreign_column_name + '" = \'' + self[fk.column_name] + '\''
+      ]
       self._meta.orm.execute(sql, function(err, rs) {
         if (rs[0]) {
-          table.orm[fkTable].get(rs[0].id, function(err, obj) {
+          table.orm[fkTable].get(rs[0], function(err, obj) {
             self[property] = obj
             done(err)
           })
