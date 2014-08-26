@@ -8,27 +8,24 @@ var debug = false
 // var EventEmitter = require('events').EventEmitter
 //  var util = require('util')
 
-var oreo = module.exports = function oreo(opts) {
+var oreo = module.exports = function oreo(opts, cb) {
   if (!(this instanceof oreo)) {
-    return new oreo(opts)
+    return new oreo(opts, cb)
   }
 
   var self = this
   self._tables = []
 
-
   opts.debug = debug
-  this.execute = query(opts)
+  self.execute = query(opts, function(err) {
+    if (err) return cb(err)
+    self.discover(cb)
+  })
 
   // if (true) {
   //   this.exec = wrap(this.execute)
   // }
-
-
-
 }
-
-
 
 
 
@@ -36,7 +33,6 @@ var oreo = module.exports = function oreo(opts) {
  * [discover description]
  */
 oreo.prototype.discover = function(cb) {
-  if (this._tables.length > 0) return
 
   cb = cb || function(){}
   var sql
@@ -52,11 +48,11 @@ oreo.prototype.discover = function(cb) {
     if (err) return cb(err)
 
     // for each table
-    async.eachSeries(rs, function(r, cb) {
+    async.eachSeries(rs, function(r, callback) {
       var table_name = r.table_name
       self._tables.push(table_name)
       // create a table object
-      self[table_name] = new Table(table_name, self.execute, cb)
+      self[table_name] = new Table(table_name, self.execute, callback)
       self[table_name].orm = self
 
       // if (true) {

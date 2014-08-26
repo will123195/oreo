@@ -8,10 +8,14 @@
 
 ## Features
 
-- No configuration necessary
-- Automatically discovers tables, primary keys, foreign keys and master/read-only servers
-- Ability to "hydrate" foreign keys
-- Object caching & memoization
+- No configuration
+- Automatically discovers schema and replication topology
+- Apply CRUD operations and get linked objects
+- Caching & memoization
+
+## Database Support
+
+- PostgreSQL 9+
 
 ## Installation
 
@@ -23,19 +27,18 @@ npm install pg
 ## Example
 
 ```js
-// Initialize Oreo
 var oreo = require('oreo')
+
+// instantiate and discover schema and network topology
 var db = oreo({
   driver: 'pg',
-  hosts: ['localhost'],
-  port: 5432,
+  hosts: ['localhost:5432'],
   name: 'database',
   user: 'username',
   pass: 'password'
-})
+}, runExampleQueries)
 
-// Discover tables, primary keys and foreign keys
-db.discover().on('ready', function() {
+function runExampleQueries(err) {
 
   // Insert a new book and it's author
   db.books.insert({
@@ -44,16 +47,38 @@ db.discover().on('ready', function() {
       name: 'Jack Kerouac'
     }
   }, function(err, book) {
-    console.log(book)
-    // { id: 1, title: On the Road, author_id: 1 }
+    console.log(book) // { id: 1, title: On the Road, author_id: 1 }
+
+    // Get a linked object
+    book.author(function(err, author) {
+      console.log(author) // { id: 1, name: Jack Kerouac, books: [] }
+
+      // Get multiple books using array of primary keys
+      db.books.mget(author.books, function(err, books) {
+        console.log(books)
+      })
+    })
 
     // Get the author by primary key
     db.authors.get(book.author_id, function(err, author) {
       console.log(author)
-      // { id: 1, name: Jack Kerouac, books: [ 1 ] }
+    })
+
+    // Find authors by criteria
+    db.authors.find({
+      where: {author_id: book.author_id}
+    }, function(err, authors) {
+      console.log(authors) // [{ id: 1, name: Jack Kerouac, books: [] }]
+    })
+
+    // Update the book
+    book.update({
+      title: 'On The Road'
+    }, function(err, book) {
+      console.log(book)
     })
   })
-})
+}
 ```
 
 The example above will work with the following database schema:
@@ -73,6 +98,16 @@ CREATE TABLE books (
   CONSTRAINT author FOREIGN KEY (author_id) REFERENCES authors(id)
 );
 ```
+**Pro Tip:** [Create a trigger](https://github.com/will123195/oreo/wiki) to auto-populate `author.books[]`.
+
+<hr />
+
+## Intentionally Omitted Features
+
+- ~~Schema configuration~~
+- ~~Naming conventions~~
+- ~~Migrations~~
+- ~~Joins~~
 
 ## Documentation
 
@@ -97,58 +132,70 @@ CREATE TABLE books (
 * [`set`](#set)
 * [`update`](#update)
 
+<hr />
 
 ## Database
 
 <a name="instantiate" />
-### oreo( opts )
+### oreo( opts, [cb] )
 
 Instantiates the `db` object and configures the database connection string.
+
+- **opts** {Object} db connection options
+- **cb** {Function} *(optional)* callback(err)
 
 ```js
 var oreo = require('oreo')
 var db = oreo({
   driver: 'pg',
-  hosts: ['localhost'],
-  port: 5432,
+  hosts: ['localhost:5432'],
   name: 'database',
   user: 'username',
   pass: 'password'
+}, function(err) {
+  db.execute('select now() as now', function(err, rs) {
+    console.log('now:', rs[0].now)
+  })
 })
 ```
 
 <a name="discover" />
-### db.discover( )
+### db.discover( [cb] )
 
-Identifies the schema in the database and adds a `Table` object to the `db` for
-each table in the database.  Emits the `ready` event when completed.
+Re-discover the schema in the database.
 
-There is no need for "model definitions" but you can still specify methods that will
-be bound to each `row` instance.
+- **cb** {Function} *(optional)* callback(err)
+
+Adds a `Table` object to `db` for
+each table in the database. Automatically runs when oreo is instantiated. Also, you can specify methods that will be bound to each `Row` object.
 
 ```js
-db.discover().on('ready', function() {
+db.discover(function(err) {
+  // the Table API (see docs below) is now available:
   // db.authors
   // db.books
 
+  // bind a method to all "book" objects
   db.books._methods.getTitle = function() {
     return this.title
   }
-
 })
 ```
 
 <a name="execute" />
-### db.execute( query, [data], [cb] )
+### db.execute( query, [data], [options], [cb] )
 
 Executes an arbitrary SQL query.
 - **query** {String|Array} the SQL statement
-- **data** {Object} *optional* parameterized query data
-- **cb** {Function} *optional* callback(err, results)
+- **data** {Object} *(optional)* parameterized query data
+- **options** {Object} *(optional)* query options
+    - `write` *(optional)* if truthy, forces query to run on master db, otherwise attempts to run on a read-only host
+    - `conString` *(optional)* the connection string of the db
+- **cb** {Function} *(optional)* callback(err, results)
 
 ```js
 db.execute([
-  'select now()',
+  'select now()', // arrays can be used for multi-line convenience
   'as now'
 ], function(err, rs) {
   console.log(rs[0]) // 2014-06-24 21:03:08.652861-04
@@ -348,4 +395,3 @@ book.update({
   // { id: 1, title: New Title, author_id: 1 }
 })
 ```
-
