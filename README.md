@@ -36,6 +36,8 @@ var db = oreo({
   name: 'database',
   user: 'username',
   pass: 'password'
+  //debug: false,
+  //memoize: 250,
 }, runExampleQueries)
 
 function runExampleQueries(err) {

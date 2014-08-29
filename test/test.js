@@ -15,7 +15,8 @@ describe('oreo', function() {
       user: 'postgres',
       pass: 'postgres', //url encoded
       hosts: ['localhost:5432'], //, 'localhost:5433', 'localhost:5430'],
-      name: 'oreo_test'
+      name: 'oreo_test',
+      debug: true
     }, done)
   })
 
@@ -250,6 +251,18 @@ describe('oreo', function() {
     db.books.get(1, function(err, book) {
       ok(!err, err)
       ok(book.getTitle() === book.title, 'did not get title')
+      done()
+    })
+  })
+
+
+  it('should prevent sql injection', function(done) {
+    db.books.find({
+      where: {
+        id: "1' or '1'='1"
+      }
+    }, function(err, books) {
+      ok(err, 'no sqli error')
       done()
     })
   })

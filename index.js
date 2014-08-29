@@ -2,8 +2,6 @@ var query = require('./lib/query')
 var async = require('async')
 var Table = require('./lib/table')
 
-var debug = false
-
 //var wrap = require('thunkify-wrap')
 // var EventEmitter = require('events').EventEmitter
 //  var util = require('util')
@@ -16,7 +14,7 @@ var oreo = module.exports = function oreo(opts, cb) {
   var self = this
   self._tables = []
 
-  opts.debug = debug
+  opts.debug = opts.debug || false
   self.execute = query(opts, function(err) {
     if (err) return cb(err)
     self.discover(cb)
