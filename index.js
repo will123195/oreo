@@ -39,11 +39,11 @@ oreo.prototype.discover = function(cb) {
   var self = this
 
   // get the tables
-  sql = "\
-    SELECT table_name \
-    FROM information_schema.tables \
-    WHERE table_schema = 'public' \
-  "
+  sql = [
+    'SELECT table_name',
+    'FROM information_schema.tables',
+    "WHERE table_schema = 'public'"
+  ]
   this.execute(sql, function(err, rs) {
     if (err) return cb(err)
 

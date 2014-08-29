@@ -7,26 +7,29 @@ const SCHEMA = fs.readFileSync(__dirname + '/schema/pg.sql', 'utf8')
 
 describe('oreo', function() {
 
+  var db
 
-  var db = oreo({
-    driver: 'postgres',
-    user: 'postgres',
-    pass: 'postgres', //url encoded
-    hosts: ['localhost'],
-    name: 'oreo_test'
+  it('should connect and discover', function(done) {
+    db = oreo({
+      driver: 'postgres',
+      user: 'postgres',
+      pass: 'postgres', //url encoded
+      hosts: ['localhost:5432'], //, 'localhost:5433', 'localhost:5430'],
+      name: 'oreo_test'
+    }, done)
   })
 
 
   it('should create tables', function(done) {
     var sql = SCHEMA;
-    db.execute(sql, function(err, rs) {
+    db.execute(sql, null, {write: true}, function(err, rs) {
       ok(!err, err)
       done()
     })
   })
 
 
-  it('should discover', function(done) {
+  it('should rediscover', function(done) {
     db.discover(function(err) {
       ok(!err, err)
       ok(!!db.authors, 'authors not discovered')
@@ -106,7 +109,7 @@ describe('oreo', function() {
 
   it('should find (where object)', function(done) {
     db.authors.find({
-      where: { 
+      where: {
         name: 'Jack Kerouac'
       }
     }, function(err, authors) {
@@ -119,7 +122,7 @@ describe('oreo', function() {
 
   it('should find (composite primary key)', function(done) {
     db.ratings.find({
-      where: { 
+      where: {
         rating: 10
       }
     }, function(err, ratings) {
@@ -131,16 +134,19 @@ describe('oreo', function() {
 
 
   it('should order by', function(done) {
+    // TODO
     done()
   })
 
 
   it('should limit', function(done) {
+    // TODO
     done()
   })
 
 
   it('should offset', function(done) {
+    // TODO
     done()
   })
 
@@ -250,4 +256,3 @@ describe('oreo', function() {
 
 
 })
-

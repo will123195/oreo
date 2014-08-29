@@ -1,30 +1,30 @@
-[![Oreo](https://raw.github.com/will123195/oreo/master/oreo.png)](https://github.com/will123195/oreo)
-
+[![Oreo](oreo.png)](https://github.com/will123195/oreo)
 
 
 [![Build Status](https://travis-ci.org/will123195/oreo.svg?branch=master)](https://travis-ci.org/will123195/oreo)
 
 
+# Features
 
-## Features
-
-- No configuration
+- No configuration or boilerplate
 - Automatically discovers schema and replication topology
-- Apply CRUD operations and get linked objects
+- Apply CRUD operations to one or more related objects
 - Caching & memoization
 
-## Database Support
+# Database Support
 
 - PostgreSQL 9+
 
-## Installation
+# Installation
 
 ```bash
 npm install oreo
 npm install pg
 ```
 
-## Example
+# Example
+
+&dagger; see the example database schema below
 
 ```js
 var oreo = require('oreo')
@@ -81,7 +81,7 @@ function runExampleQueries(err) {
 }
 ```
 
-The example above will work with the following database schema:
+Example database schema:
 ```sql
 CREATE TABLE authors (
   id SERIAL,
@@ -102,30 +102,30 @@ CREATE TABLE books (
 
 <hr />
 
-## Intentionally Omitted Features
+# Don't use this if you want:
 
 - ~~Schema configuration~~
 - ~~Naming conventions~~
 - ~~Migrations~~
 - ~~Joins~~
 
-## Documentation
+# Documentation
 
-### Database
+## Main
 
 * [`oreo`](#instantiate)
 * [`discover`](#discover)
 * [`execute`](#execute)
 
-### Table
+## Table
 
 * [`find`](#find)
 * [`findOne`](#findOne)
 * [`get`](#get)
 * [`insert`](#insert)
-* [`mget`](#mget) (not yet implemented)
+* [`mget`](#mget)
 
-### Row
+## Row
 
 * [`hydrate`](#hydrate)
 * [`save`](#save)
@@ -134,10 +134,10 @@ CREATE TABLE books (
 
 <hr />
 
-## Database
+# Main
 
 <a name="instantiate" />
-### oreo( opts, [cb] )
+## oreo( opts, [cb] )
 
 Instantiates the `db` object and configures the database connection string.
 
@@ -160,7 +160,7 @@ var db = oreo({
 ```
 
 <a name="discover" />
-### db.discover( [cb] )
+## db.discover( [cb] )
 
 Re-discover the schema in the database.
 
@@ -183,7 +183,7 @@ db.discover(function(err) {
 ```
 
 <a name="execute" />
-### db.execute( query, [data], [options], [cb] )
+## db.execute( query, [data], [options], [cb] )
 
 Executes an arbitrary SQL query.
 - **query** {String|Array} the SQL statement
@@ -229,10 +229,10 @@ db.execute('select now()')
 })
 ```
 
-## Table
+# Table
 
 <a name="find" />
-### db.table.find( opts, [cb] )
+## db.table.find( opts, [cb] )
 
 Finds one or more rows:
 ```js
@@ -249,7 +249,7 @@ db.authors.find({
 If no callback is provided a stream is returned.
 
 <a name="findOne" />
-### db.table.findOne( opts, [cb] )
+## db.table.findOne( opts, [cb] )
 
 Finds exactly one row:
 ```js
@@ -265,7 +265,7 @@ db.authors.findOne({
 If no callback is provided a stream is returned.
 
 <a name="get" />
-### db.table.get( primaryKey, [cb] )
+## db.table.get( primaryKey, [cb] )
 
 Finds a row by primary key:
 ```js
@@ -285,7 +285,7 @@ db.parts.get({
 ```
 
 <a name="insert" />
-### db.table.insert( data, [cb] )
+## db.table.insert( data, [cb] )
 
 Inserts a new row.
 ```js
@@ -316,7 +316,7 @@ db.books.insert({
 ```
 
 <a name="mget" />
-### db.table.mget( primaryKeys, [cb] ) NOT YET IMPLEMENTED
+## db.table.mget( primaryKeys, [cb] )
 
 Gets many rows from the database by primary key:
 ```js
@@ -329,10 +329,10 @@ db.books.mget(bookIds, function(err, books) {
 
 If no callback is provided a stream is returned.
 
-## Row
+# Row
 
 <a name="hydrate" />
-### row.hydrate( [cb] )
+## row.hydrate( [cb] )
 
 Populates the related data rows (1-to-1 foreign keys):
 ```js
@@ -352,7 +352,7 @@ db.books.get(1, function(err, book) {
 ```
 
 <a name="save" />
-### row.save( [cb] )
+## row.save( [cb] )
 
 Saves the modified property values to the database (recursively):
 ```js
@@ -368,7 +368,7 @@ db.books.get(1, function(err, book) {
 ```
 
 <a name="set" />
-### row.set( data )
+## row.set( data )
 
 Sets multiple property values but does not save yet:
 ```js
@@ -384,7 +384,7 @@ db.books.get(1, function(err, book) {
 ```
 
 <a name="update" />
-### row.update( data, [cb] )
+## row.update( data, [cb] )
 
 Update an existing row:
 ```js
