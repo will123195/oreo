@@ -1,6 +1,7 @@
 var oreo = require('..')
 var ok = require('assert').ok
 var fs = require('fs')
+var util = require('util')
 
 const SCHEMA = fs.readFileSync(__dirname + '/schema/pg.sql', 'utf8')
 
@@ -8,15 +9,18 @@ const SCHEMA = fs.readFileSync(__dirname + '/schema/pg.sql', 'utf8')
 describe('oreo', function() {
 
   var db
+  var env = process.env
+
 
   it('should connect and discover', function(done) {
     db = oreo({
       driver: 'postgres',
-      user: 'postgres',
-      pass: 'postgres', //url encoded
-      hosts: ['localhost:5432'], //, 'localhost:5433', 'localhost:5430'],
-      name: 'oreo_test',
-      debug: true
+      user: env.OREO_USER || 'postgres',
+      pass: env.OREO_PASS || 'postgres', //url encoded
+      hosts: ['localhost:5432', 'localhost:5433', 'localhost:5430'],
+      name: env.OREO_NAME || 'oreo_test',
+      debug: env.OREO_DEBUG || false,
+      //silent: env.OREO_SILENT || true
     }, done)
   })
 
@@ -256,12 +260,41 @@ describe('oreo', function() {
   })
 
 
-  it('should prevent sql injection', function(done) {
+  it('should execute parameterized query', function(done) {
+    db.execute([
+      'select id',
+      'from authors',
+      'where name = :name'
+    ], {
+      name: 'Jack2',
+    }, function(err, rs) {
+      ok(!err, err)
+      ok(rs[0].id === 1, 'wrong record')
+      done()
+    })
+  })
+
+
+  it('should prevent quote sqli', function(done) {
     db.books.find({
       where: {
         id: "1' or '1'='1"
       }
     }, function(err, books) {
+      // we are expecting an error here
+      ok(err, 'no sqli error')
+      done()
+    })
+  })
+
+
+  it('should prevent semicolon sqli', function(done) {
+    db.books.find({
+      where: {
+        id: "1'; select now() where '1'='1"
+      }
+    }, function(err, books) {
+      // we are expecting an error here
       ok(err, 'no sqli error')
       done()
     })

@@ -6,10 +6,11 @@
 
 # Features
 
-- No configuration or boilerplate
 - Automatically discovers schema and replication topology
-- Apply CRUD operations to one or more related objects
-- Caching & memoization
+- Zero boilerplate
+- Exposes CRUD methods
+- Saves nested objects
+- Object caching & query memoization
 
 # Database Support
 
@@ -35,25 +36,26 @@ var db = oreo({
   hosts: ['localhost:5432'],
   name: 'database',
   user: 'username',
-  pass: 'password'
+  pass: 'password',
   //debug: false,
-  //memoize: 250,
+  //memoize: 150,
+  //cache: null
 }, runExampleQueries)
 
 function runExampleQueries(err) {
 
-  // Insert a new book and it's author
+  // Insert a new book and its author
   db.books.insert({
-    title: 'On the Road',
+    title: 'Fear and Loathing in Las Vegas',
     author: {
-      name: 'Jack Kerouac'
+      name: 'Hunter S.Thompson'
     }
   }, function(err, book) {
-    console.log(book) // { id: 1, title: On the Road, author_id: 1 }
+    console.log(book) // { id: 1, title: Fear and Loathing in Las Vegas, author_id: 1 }
 
     // Get a linked object
     book.author(function(err, author) {
-      console.log(author) // { id: 1, name: Jack Kerouac, books: [] }
+      console.log(author) // { id: 1, name: Hunter S. Thompson, books: [] }
 
       // Get multiple books using array of primary keys
       db.books.mget(author.books, function(err, books) {
@@ -61,23 +63,25 @@ function runExampleQueries(err) {
       })
     })
 
-    // Get the author by primary key
-    db.authors.get(book.author_id, function(err, author) {
+    // Get an author by primary key
+    db.authors.get(1, function(err, author) {
       console.log(author)
     })
 
     // Find authors by criteria
     db.authors.find({
-      where: {author_id: book.author_id}
+      where: {
+        author_id: 1
+      }
     }, function(err, authors) {
-      console.log(authors) // [{ id: 1, name: Jack Kerouac, books: [] }]
+      console.log(authors) // [{ id: 1, name: Hunter S. Thompson, books: [] }]
     })
 
     // Update the book
     book.update({
-      title: 'On The Road'
+      title: 'The Rum Diary'
     }, function(err, book) {
-      console.log(book)
+      console.log(book) // { id: 1, title: The Rum Diary, author_id: 1 }
     })
   })
 }
@@ -100,16 +104,16 @@ CREATE TABLE books (
   CONSTRAINT author FOREIGN KEY (author_id) REFERENCES authors(id)
 );
 ```
-**Pro Tip:** [Create a trigger](https://github.com/will123195/oreo/wiki) to auto-populate `author.books[]`.
+**Pro Tip:** [Create a trigger](https://github.com/will123195/oreo/wiki/Trigger-to-populate-array) to auto-populate `author.books[]`.
 
 <hr />
 
-# Don't use this if you want:
+# Don't use oreo if you want:
 
 - ~~Schema configuration~~
 - ~~Naming conventions~~
 - ~~Migrations~~
-- ~~Joins~~
+- ~~Join-based hydration~~
 
 # Documentation
 
@@ -141,9 +145,9 @@ CREATE TABLE books (
 <a name="instantiate" />
 ## oreo( opts, [cb] )
 
-Instantiates the `db` object and configures the database connection string.
+Instantiates the `db` object and configures the database connection string(s).
 
-- **opts** {Object} db connection options
+- **opts** {Object} options
 - **cb** {Function} *(optional)* callback(err)
 
 ```js
@@ -153,13 +157,17 @@ var db = oreo({
   hosts: ['localhost:5432'],
   name: 'database',
   user: 'username',
-  pass: 'password'
+  pass: 'password',
+  debug: false,
+  memoize: 150, // ms to cache queries
+  cache: null // object with get/set methods for caching objects
 }, function(err) {
   db.execute('select now() as now', function(err, rs) {
     console.log('now:', rs[0].now)
   })
 })
 ```
+**Hacker Tip:** [Replicate to Redis](https://github.com/will123195/oreo/wiki/Replicate-to-Redis) for super fast reads.
 
 <a name="discover" />
 ## db.discover( [cb] )
@@ -168,8 +176,8 @@ Re-discover the schema in the database.
 
 - **cb** {Function} *(optional)* callback(err)
 
-Adds a `Table` object to `db` for
-each table in the database. Automatically runs when oreo is instantiated. Also, you can specify methods that will be bound to each `Row` object.
+For each table in the database, defines a property `db.<table_name>` whose value is a `Table` object.
+Automatically runs when oreo is instantiated. Also, you can specify methods that will be bound to each `Row` object that is returned by `Table.get()`.
 
 ```js
 db.discover(function(err) {
@@ -247,6 +255,23 @@ db.authors.find({
   console.log(authors[0].id) // 1
 })
 ```
+
+The `where` option has several valid formats:
+- {String}
+  ```js
+  where: "field = 'abc' and field2 > 1"
+  ```
+- {Array}
+  ```js
+  where: ["field = 'abc'", "field2 > 1"]
+  ```
+- {Object} recommended, blocks SQL injection
+  ```js
+  where: {
+    field: 'abc',
+    field2: ['>', 1]
+  }
+  ```
 
 If no callback is provided a stream is returned.
 
