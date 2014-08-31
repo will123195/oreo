@@ -159,8 +159,8 @@ var db = oreo({
   user: 'username',
   pass: 'password',
   debug: false,
-  memoize: 150, // ms to cache queries
-  cache: null // object with get/set methods for caching objects
+  memoize: 150, // ms to cache get() queries
+  cache: null // object with get/set methods to cache data objects
 }, function(err) {
   db.execute('select now() as now', function(err, rs) {
     console.log('now:', rs[0].now)
