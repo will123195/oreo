@@ -81,6 +81,15 @@ describe('oreo', function() {
   })
 
 
+  it('should mget', function(done) {
+    db.authors.mget([1], function(err, authors) {
+      ok(!err, err)
+      ok(authors[0].id === 1, 'did not get authors')
+      done()
+    })
+  })
+
+
   it('should get (composite primary key)', function(done) {
     db.ratings.get([1, 1], function(err, rating) {
       ok(!err, err)
