@@ -197,7 +197,7 @@ db.discover(function(err) {
 
 Executes an arbitrary SQL query.
 - **query** {String|Array} the SQL statement
-- **data** {Object} *(optional)* parameterized query data
+- **data** {Object} *(optional, unless `options` is specified)* parameterized query data
 - **options** {Object} *(optional)* query options
     - `write` *(optional)* if truthy, forces query to run on master db, otherwise attempts to run on a read-only host
     - `conString` *(optional)* the connection string of the db
