@@ -20,7 +20,8 @@ describe('oreo', function() {
       hosts: ['localhost:5432', 'localhost:5433', 'localhost:5430'],
       name: env.OREO_NAME || 'oreo_test',
       debug: env.OREO_DEBUG || false,
-      //silent: env.OREO_SILENT || true
+      //silent: env.OREO_SILENT || true,
+      cache: require('redis').createClient()
     }, done)
   })
 
@@ -75,6 +76,7 @@ describe('oreo', function() {
   it('should get', function(done) {
     db.authors.get(1, function(err, author) {
       ok(!err, err)
+      console.log(author)
       ok(author.id === 1, 'did not get author')
       done()
     })
