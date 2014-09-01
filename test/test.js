@@ -81,14 +81,11 @@ describe('oreo', function() {
     db.authors.save(data, function(err, author) {
       ok(!err, err)
       ok(author.id === 15, 'did not insert author')
-      // wait for it to replicate to slave db
-      setTimeout(function() {
-        db.authors.save(data, function(err, author) {
-          ok(!err, err)
-          ok(author.id === 15, 'did not update author')
-          done()
-        })
-      }, 250)
+      db.authors.save(data, function(err, author) {
+        ok(!err, err)
+        ok(author.id === 15, 'did not update author')
+        done()
+      })
     })
   })
 
