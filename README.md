@@ -130,6 +130,7 @@ CREATE TABLE books (
 * [`get`](#get)
 * [`insert`](#insert)
 * [`mget`](#mget)
+* [`save`](#table_save)
 
 ## Row
 
@@ -355,6 +356,21 @@ db.books.mget(bookIds, function(err, books) {
 ```
 
 If no callback is provided a stream is returned.
+
+<a name="table_save" />
+## db.table.save( data, [cb] )
+
+Inserts or updates depending on whether the primary key exists in the db.
+```js
+var formPOST = {
+  id: 1,
+  title: 'New Title'
+}
+db.books.save(formPOST, function(err, book) {
+  console.log(book)
+  // { id: 1, title: New Title, author_id: 1 }
+})
+```
 
 # Row
 

@@ -73,6 +73,26 @@ describe('oreo', function() {
   })
 
 
+  it('should save', function(done) {
+    var data = {
+      id: 15,
+      name: 'Jim Bob'
+    }
+    db.authors.save(data, function(err, author) {
+      ok(!err, err)
+      ok(author.id === 15, 'did not insert author')
+      // wait for it to replicate to slave db
+      setTimeout(function() {
+        db.authors.save(data, function(err, author) {
+          ok(!err, err)
+          ok(author.id === 15, 'did not update author')
+          done()
+        })
+      }, 250)
+    })
+  })
+
+
   it('should get', function(done) {
     db.authors.get(1, function(err, author) {
       ok(!err, err)
