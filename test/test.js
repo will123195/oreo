@@ -179,7 +179,7 @@ describe('oreo', function() {
   it('should update', function(done) {
     db.authors.get(1, function(err, author) {
       ok(!err, err)
-      var new_name = 'Jack Kerouac'
+      var new_name = 'Jim Kerouac'
       author.update({
         name: new_name
       }, function(err, author) {
@@ -306,6 +306,40 @@ describe('oreo', function() {
       // we are expecting an error here
       ok(err, 'no sqli error')
       done()
+    })
+  })
+
+
+  it('should cache', function(done) {
+    var gotValueFromCache = false;
+    // a simple mock-redis client object
+    db.books.orm._opts.cache = function() {
+      var cache = {}
+      return {
+        get: function(key, cb) {
+          gotValueFromCache = true
+          cb(null, cache[key])
+        },
+        set: function(key, val, cb) {
+          cache[key] = val
+          cb(null)
+        }
+      }
+    }()
+    db.books.get(1, function(err, book) {
+      ok(!err, err)
+      var new_title = 'New Title'
+      book.update({
+        title: new_title
+      }, function(err) {
+        ok(!err, err)
+        db.books.get(1, function(err, book) {
+          ok(!err, err)
+          ok(book.title === new_title, 'did not save new title')
+          ok(gotValueFromCache, 'did not get value from cache')
+          done()
+        })
+      })
     })
   })
 
