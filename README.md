@@ -359,14 +359,14 @@ If no callback is provided a stream is returned.
 # Row
 
 <a name="hydrate" />
-## row.hydrate( [cb] )
+## row.hydrate( fkConstraintName, [cb] )
 
-Populates the related data rows (1-to-1 foreign keys):
+Gets the linked record (foreign key)
 ```js
 db.books.get(1, function(err, book) {
   console.log(book)
   // { id: 1, title: On the Road, author_id: 1 }
-  book.hydrate(function(err, book) {
+  book.hydrate('author', function(err, author) {
     console.log(book)
     // {
     //   id: 1,

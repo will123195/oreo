@@ -76,7 +76,6 @@ describe('oreo', function() {
   it('should get', function(done) {
     db.authors.get(1, function(err, author) {
       ok(!err, err)
-      console.log(author)
       ok(author.id === 1, 'did not get author')
       done()
     })
@@ -196,8 +195,9 @@ describe('oreo', function() {
   it('should hydrate', function(done) {
     db.books.get(1, function(err, book) {
       ok(!err, err)
-      book.hydrate(function(err, book) {
-        ok(book.author.id === 1, 'did not hydrate author')
+      book.hydrate('author', function(err, author) {
+        ok(book.author_id === author.id, 'did not get author')
+        ok(book.author.id === author.id, 'did not hydrate author')
         ok(book.id === 1, 'weird')
         done()
       })
@@ -213,9 +213,8 @@ describe('oreo', function() {
     }, function(err, data) {
       ok(!err, err)
       db.samples.get(data.id, function(err, sample) {
-        sample.hydrate(function(err, sample) {
+        sample.hydrate('rating', function(err, rating) {
           ok(sample.rating.rating === 10, 'did not hydrate sample')
-          ok(sample.id === 1, 'wrong sample')
           done()
         })
       })
