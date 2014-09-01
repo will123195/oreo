@@ -21,7 +21,7 @@ describe('oreo', function() {
       name: env.OREO_NAME || 'oreo_test',
       debug: env.OREO_DEBUG || false,
       //silent: env.OREO_SILENT || true,
-      cache: require('redis').createClient()
+      //cache: require('redis').createClient()
     }, done)
   })
 
