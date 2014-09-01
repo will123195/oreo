@@ -161,14 +161,14 @@ var db = oreo({
   pass: 'password',
   debug: false,
   memoize: 150, // ms to cache data objects in app ram
-  cache: null // object with get/set methods to cache data objects indefinitely
+  cache: null // object with get/set methods to cache data objects, i.e. redis client
 }, function(err) {
   db.execute('select now() as now', function(err, rs) {
     console.log('now:', rs[0].now)
   })
 })
 ```
-**Hacker Tip:** [Replicate to Redis](https://github.com/will123195/oreo/wiki/Replicate-to-Redis) for super fast reads.
+**Hacker Tip:** [Replicate to Redis](https://github.com/will123195/oreo/wiki/Replicate-to-Redis) for never-stale caching.
 
 <a name="discover" />
 ## db.discover( [cb] )
