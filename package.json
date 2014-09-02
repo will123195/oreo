@@ -1,6 +1,6 @@
 {
   "name": "oreo",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Simple ORM with schema detection",
   "main": "lib/index.js",
   "scripts": {
