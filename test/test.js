@@ -20,7 +20,8 @@ describe('oreo', function() {
       hosts: ['localhost:5432', 'localhost:5433', 'localhost:5430'],
       name: env.OREO_NAME || 'oreo_test',
       debug: env.OREO_DEBUG || false,
-      //silent: env.OREO_SILENT || true,
+      silent: env.OREO_SILENT || true,
+      //memoize: 150,
       //cache: require('redis').createClient()
     }, done)
   })
