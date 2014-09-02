@@ -30,16 +30,13 @@ npm install pg
 ```js
 var oreo = require('oreo')
 
-// instantiate and discover schema and network topology
+// discover schema and replication topology
 var db = oreo({
   driver: 'pg',
   hosts: ['localhost:5432'],
-  name: 'database',
-  user: 'username',
-  pass: 'password',
-  //debug: false,
-  //memoize: 150,
-  //cache: null
+  name: 'my_db',
+  user: 'postgres',
+  pass: 'password'
 }, runExampleQueries)
 
 function runExampleQueries(err) {
@@ -54,8 +51,8 @@ function runExampleQueries(err) {
     console.log(book) // { id: 1, title: Fear and Loathing in Las Vegas, author_id: 1 }
 
     // Get a linked object
-    book.author(function(err, author) {
-      console.log(author) // { id: 1, name: Hunter S. Thompson, books: [] }
+    book.hydrate('author', function(err, author) {
+      console.log(book.author) // { id: 1, name: Hunter S. Thompson, books: [] }
 
       // Get multiple books using array of primary keys
       db.books.mget(author.books, function(err, books) {
@@ -168,7 +165,7 @@ var db = oreo({
   })
 })
 ```
-**Hacker Tip:** [Replicate to Redis](https://github.com/will123195/oreo/wiki/Replicate-to-Redis) for never-stale caching.
+**Hacker Tip:** [Replicate to Redis](https://github.com/will123195/oreo/wiki/Replicate-to-Redis) so your cache is never stale.
 
 <a name="discover" />
 ## db.discover( [cb] )
