@@ -361,6 +361,19 @@ describe('oreo', function() {
       })
     })
   })
+  
+  
+  it('should save 1-to-1 nested object', function(done) {
+    db.books.get(1, function(err, book) {
+      book.author = {
+        name: 'Author #1'
+      }
+      book.persist(function(err, book) {
+        ok(!err, err)
+        console.log('book:', book)
+      })
+    })
+  })
 
 
 })
