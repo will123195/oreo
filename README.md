@@ -156,9 +156,9 @@ var db = oreo({
   name: 'database',
   user: 'username',
   pass: 'password',
-  debug: false,
-  memoize: 150, // ms to cache data objects in app ram
-  cache: null // object with get/set methods to cache data objects, i.e. redis client
+  //debug: false,
+  //memoize: 150, // ms to cache data objects in app ram
+  //cache: null // object with get/set methods to cache data objects, i.e. redis client
 }, function(err) {
   db.execute('select now() as now', function(err, rs) {
     console.log('now:', rs[0].now)
@@ -256,20 +256,23 @@ db.authors.find({
 
 The `where` option has several valid formats:
 - {String}
-  ```js
-  where: "field = 'abc' and field2 > 1"
-  ```
+
+    ```js
+    where: "field = 'abc' and field2 > 1"
+    ```
 - {Array}
-  ```js
-  where: ["field = 'abc'", "field2 > 1"]
-  ```
+ 
+    ```js
+    where: ["field = 'abc'", "field2 > 1"]
+    ```
 - {Object} recommended, blocks SQL injection
-  ```js
-  where: {
-    field: 'abc',
-    field2: ['>', 1]
-  }
-  ```
+
+    ```js
+    where: {
+      field: 'abc',
+      field2: ['>', 1]
+    }
+    ```
 
 If no callback is provided a stream is returned.
 
