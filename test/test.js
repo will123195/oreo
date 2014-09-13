@@ -371,19 +371,42 @@ describe('oreo', function() {
       })
     })
   })
-  
-  
-  it('should save 1-to-1 nested object', function(done) {
-    db.books.get(1, function(err, book) {
-      book.author = {
+
+
+  it('should save 1-to-1 nested object (insert + insert)', function(done) {
+    var newBook = {
+      title: 'Book #1',
+      author: {
         name: 'Author #1'
+      }
+    }
+    db.books.save(newBook, function(err, book) {
+      ok(!err, err)
+      ok(book.id === 2, 'did not insert book')
+      ok(book.author_id === 2, 'did not insert author')
+      done()
+    })
+  })
+
+
+  it('should save 1-to-1 nested object (update + insert)', function(done) {
+    db.books.get(2, function(err, book) {
+      ok(!err, err)
+      // replace the book's author with a newly inserted author
+      book.author = {
+        name: 'Author #2'
       }
       book.persist(function(err, book) {
         ok(!err, err)
-        console.log('book:', book)
+        ok(book.id === 2, 'did not get book')
+        ok(book.author_id === 3, 'did not insert author')
+        done()
       })
     })
   })
+
+
+  // TODO: more nested save tests
 
 
 })

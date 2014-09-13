@@ -6,11 +6,11 @@
 
 # Features
 
-- Automatically discovers schema and replication topology
+- Automatically discovers schema and master/read-only hosts
 - Zero boilerplate
-- Exposes CRUD methods
 - Saves nested objects
-- Object caching & query memoization
+- Supports composite primary keys
+- Optional object caching & query memoization
 
 # Database Support
 
