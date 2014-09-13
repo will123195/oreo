@@ -209,6 +209,11 @@ db.discover(function(err) {
   db.books._methods.getTitle = function() {
     return this.title
   }
+
+  // for example:
+  db.books.get(1, function(err, book) {
+    // book.getTitle()
+  })
 })
 ```
 
