@@ -11,10 +11,18 @@ describe('oreo', function() {
   var db
   var env = process.env
 
+  it('should fail with unknown driver', function(done) {
+    db = oreo({
+      driver: 'mongo'
+    }, function(err) {
+      ok(err, err)
+      done()
+    })
+  })
 
   it('should connect and discover', function(done) {
     db = oreo({
-      driver: 'postgres',
+      driver: 'pg',
       user: env.OREO_USER || 'postgres',
       pass: env.OREO_PASS || 'postgres', //url encoded
       hosts: ['localhost:5432', 'localhost:5433', 'localhost:5430'],
@@ -23,7 +31,9 @@ describe('oreo', function() {
       silent: env.OREO_SILENT || true,
       //memoize: 150,
       //cache: require('redis').createClient()
-    }, done)
+    }, function() {
+      done()
+    })
   })
 
 
@@ -332,7 +342,7 @@ describe('oreo', function() {
   it('should cache', function(done) {
     var gotValueFromCache = false;
     // a simple mock-redis client object
-    db.books.orm._opts.cache = function() {
+    db.books.db._opts.cache = function() {
       var cache = {}
       return {
         get: function(key, cb) {
