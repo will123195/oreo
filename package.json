@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "async": "~0.9.0",
+    "hide-property": "0.0.1",
     "is-integer": "^1.0.3"
   }
 }

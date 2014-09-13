@@ -23,7 +23,26 @@ npm install oreo
 npm install pg
 ```
 
-# Example
+# Quick Example
+
+```js
+var oreo = require('oreo')
+
+var db = oreo({
+  driver: 'pg',
+  hosts: ['localhost:5432'],
+  name: 'my_db',
+  user: 'postgres',
+  pass: 'password'
+}, function(err) {
+  // Get a row by primary key
+  db.my_table_name.get(id, function(err, row) {
+    console.log(row)
+  })
+}
+```
+
+# Full Example
 
 &dagger; see the example database schema below
 
@@ -36,7 +55,10 @@ var db = oreo({
   hosts: ['localhost:5432'],
   name: 'my_db',
   user: 'postgres',
-  pass: 'password'
+  pass: 'password',
+  debug: false,
+  memoize: 150,
+  cache: redisClient
 }, runExampleQueries)
 
 function runExampleQueries(err) {
@@ -187,6 +209,11 @@ db.discover(function(err) {
   db.books._methods.getTitle = function() {
     return this.title
   }
+
+  // for example:
+  db.books.get(1, function(err, book) {
+    // book.getTitle()
+  })
 })
 ```
 
