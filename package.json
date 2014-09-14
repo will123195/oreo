@@ -1,8 +1,8 @@
 {
   "name": "oreo",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Simple ORM with schema detection",
-  "main": "lib/index.js",
+  "main": "index.js",
   "scripts": {
     "test": "mocha -b"
   },
@@ -15,7 +15,14 @@
     "pg",
     "pgsql",
     "postgresql",
-    "orm"
+    "mysql",
+    "orm",
+    "activerecord",
+    "bookshelf",
+    "sequelize",
+    "persistence",
+    "waterline",
+    "jugglingdb"
   ],
   "author": "will123195",
   "license": "MIT",
@@ -25,11 +32,12 @@
   "homepage": "https://github.com/will123195/oreo",
   "devDependencies": {
     "mocha": "~1.20.1",
+    "mysql": "^2.5.0",
     "pg": "~3.4.0"
   },
   "dependencies": {
-    "async": "~0.9.0",
+    "async": "0.9.0",
     "hide-property": "0.0.1",
-    "is-integer": "^1.0.3"
+    "is-integer": "1.0.3"
   }
 }

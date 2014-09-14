@@ -1,11 +1,11 @@
-var query = require('./query')
+var query = require('./lib/query')
 var async = require('async')
-var Table = require('./table')
+var Table = require('./lib/table')
 var hide = require('hide-property')
 
 var supportedDrivers = [
   'pg',
-  //'mysql'
+  'mysql'
 ]
 
 var oreo = module.exports = function oreo(opts, cb) {
@@ -15,6 +15,7 @@ var oreo = module.exports = function oreo(opts, cb) {
 
   var self = this
 
+  // use _ prefix to avoid conflict with table names
   hide(self, '_driver')
   hide(self, '_platform')
   hide(self, '_query')
@@ -26,10 +27,9 @@ var oreo = module.exports = function oreo(opts, cb) {
   self._driver = require(opts.driver)
 
   // bind the platform-specific methods to this
-  self._platform = require('./platforms/' + opts.driver)
+  self._platform = require('./lib/platforms/' + opts.driver)
   self._platform.db = self
 
-  // use _ prefix to avoid conflict with table names
   self._tables = []
   self._opts = opts
 

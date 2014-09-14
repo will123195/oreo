@@ -6,15 +6,17 @@
 
 # Features
 
-- Automatically discovers schema and master/read-only hosts
-- Zero boilerplate
+- Automatically discovers master/read-only hosts
+- Detects relationships (schema requires foreign keys)
 - Saves nested objects
+- Optional object caching & memoization
 - Supports composite primary keys
-- Optional object caching & query memoization
+- Zero boilerplate
 
 # Database Support
 
 - PostgreSQL 9+
+- MySQL
 
 # Installation
 
@@ -57,7 +59,7 @@ var db = oreo({
   user: 'postgres',
   pass: 'password',
   debug: false,
-  memoize: 150,
+  memoize: 150, // ms
   cache: redisClient
 }, runExampleQueries)
 
@@ -125,14 +127,9 @@ CREATE TABLE books (
 ```
 **Pro Tip:** [Create a trigger](https://github.com/will123195/oreo/wiki/Trigger-to-populate-array) to auto-populate `author.books[]`.
 
+**Hacker Tip:** [Replicate to Redis](https://github.com/will123195/oreo/wiki/Replicate-to-Redis) so your cache is never stale.
+
 <hr />
-
-# Don't use oreo if you want:
-
-- ~~Schema configuration~~
-- ~~Naming conventions~~
-- ~~Migrations~~
-- ~~Join-based hydration~~
 
 # Documentation
 
@@ -179,15 +176,14 @@ var db = oreo({
   user: 'username',
   pass: 'password',
   //debug: false,
-  //memoize: 150, // ms to cache data objects in app ram
-  //cache: null // object with get/set methods to cache data objects, i.e. redis client
+  //memoize: 150, // ms to cache data objects in process memory
+  //cache: null // object with get/set methods to cache data objects, i.e. redisClient
 }, function(err) {
   db.execute('select now() as now', function(err, rs) {
     console.log('now:', rs[0].now)
   })
 })
 ```
-**Hacker Tip:** [Replicate to Redis](https://github.com/will123195/oreo/wiki/Replicate-to-Redis) so your cache is never stale.
 
 <a name="discover" />
 ## db.discover( [cb] )
@@ -196,16 +192,16 @@ Re-discover the schema in the database.
 
 - **cb** {Function} *(optional)* callback(err)
 
-For each table in the database, defines a property `db.<table_name>` whose value is a `Table` object.
-Automatically runs when oreo is instantiated. Also, you can specify methods that will be bound to each `Row` object that is returned by `Table.get()`.
+For each table in the database, a property `db.<table_name>` whose value is a `Table` object will be defined.
+Automatically runs when oreo is instantiated. Also, you can specify methods that will be bound to each `Row` that is instantiated by `Table.get()`.
 
 ```js
 db.discover(function(err) {
-  // the Table API (see docs below) is now available:
+  // the Table API (see docs below) is now available for each table:
   // db.authors
   // db.books
 
-  // bind a method to all "book" objects
+  // bind a method to all "book" `Row` objects
   db.books._methods.getTitle = function() {
     return this.title
   }
@@ -288,7 +284,7 @@ The `where` option has several valid formats:
     where: "field = 'abc' and field2 > 1"
     ```
 - {Array}
- 
+
     ```js
     where: ["field = 'abc'", "field2 > 1"]
     ```

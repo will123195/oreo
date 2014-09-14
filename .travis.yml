@@ -3,3 +3,4 @@ node_js:
   - "0.10"
 before_script:
   - psql -c 'create database oreo_test;' -U postgres
+  - mysql -e 'create database oreo_test;'
