@@ -223,9 +223,8 @@ describe('oreo', function() {
   it('should hydrate', function(done) {
     db.books.get(1, function(err, book) {
       ok(!err, err)
-      book.hydrate('author', function(err, author) {
-        ok(book.author_id === author.id, 'did not get author')
-        ok(book.author.id === author.id, 'did not hydrate author')
+      book.hydrate('author', function(err) {
+        ok(book.author.id === book.author_id, 'did not hydrate author')
         ok(book.id === 1, 'weird')
         done()
       })
@@ -241,7 +240,7 @@ describe('oreo', function() {
     }, function(err, data) {
       ok(!err, err)
       db.samples.get(data.id, function(err, sample) {
-        sample.hydrate('rating', function(err, rating) {
+        sample.hydrate('rating', function(err) {
           ok(sample.rating.rating === 10, 'did not hydrate sample')
           done()
         })
@@ -396,11 +395,36 @@ describe('oreo', function() {
       book.author = {
         name: 'Author #2'
       }
-      book.persist(function(err, book) {
+      book.save(function(err, book) {
         ok(!err, err)
         ok(book.id === 2, 'did not get book')
         ok(book.author_id === 3, 'did not insert author')
         done()
+      })
+    })
+  })
+
+
+  it('should save 1-to-1-to-1 nested objects (insert + insert + insert)', function(done) {
+    var newBookData = {
+      title: 'my title',
+      author: {
+        name: 'Author #3',
+        country: {
+          code: 'US',
+          name: 'United States'
+        }
+      }
+    }
+    db.books.save(newBookData, function(err, book) {
+      ok(!err, err)
+      book.hydrate('author', function(err) {
+        ok(!err, err)
+        book.author.hydrate('country', function(err) {
+          ok(!err, err)
+          ok(book.author.country.name === 'United States', 'did not save')
+          done()
+        })
       })
     })
   })

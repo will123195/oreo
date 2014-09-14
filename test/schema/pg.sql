@@ -1,16 +1,24 @@
 DROP TABLE IF EXISTS authors CASCADE;
 DROP TABLE IF EXISTS books CASCADE;
+DROP TABLE IF EXISTS countries CASCADE;
 DROP TABLE IF EXISTS ratings CASCADE;
 DROP TABLE IF EXISTS samples CASCADE;
 
+
+CREATE TABLE countries (
+  code VARCHAR,
+  name VARCHAR,
+  CONSTRAINT countries_pkey PRIMARY KEY(code)
+);
 
 CREATE TABLE authors (
   id SERIAL,
   name VARCHAR,
   books INTEGER[],
-  CONSTRAINT authors_pkey PRIMARY KEY(id)
+  country VARCHAR,
+  CONSTRAINT authors_pkey PRIMARY KEY(id),
+  CONSTRAINT country FOREIGN KEY (country) REFERENCES countries(code)
 );
-
 
 CREATE TABLE books (
   id SERIAL,
@@ -34,5 +42,6 @@ CREATE TABLE samples (
   book_id INTEGER,
   description VARCHAR,
   CONSTRAINT samples_pkey PRIMARY KEY(id),
+  CONSTRAINT book FOREIGN KEY (book_id) REFERENCES books(id),
   CONSTRAINT rating FOREIGN KEY (author_id, book_id) REFERENCES ratings(author_id, book_id)
 );
