@@ -294,7 +294,7 @@ The `where` option has several valid formats:
     ```js
     where: {
       field: 'abc',
-      field2: ['>', 1]
+      field2: {'>': 1}
     }
     ```
 
