@@ -406,7 +406,7 @@ Gets the linked record (foreign key)
 db.books.get(1, function(err, book) {
   console.log(book)
   // { id: 1, title: On the Road, author_id: 1 }
-  book.hydrate('author', function(err, author) {
+  book.hydrate('author', function(err) {
     console.log(book)
     // {
     //   id: 1,
