@@ -23,8 +23,7 @@
 ```bash
 npm install oreo
 npm install pg
-- or -
-npm install mysql
+#npm install mysql
 ```
 
 # Quick Example
