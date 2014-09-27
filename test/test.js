@@ -326,28 +326,18 @@ platforms.forEach(function(config) {
     })
 
 
-    it('should prevent quote sqli', function(done) {
-      db.books.find({
-        where: {
-          id: "1' or '1'='1"
-        }
-      }, function(err, books) {
-        // we are expecting an error here
-        ok(err, 'no sqli error')
-        done()
-      })
-    })
-
-
     it('should prevent semicolon sqli', function(done) {
       db.books.find({
         where: {
-          id: "1'; select now() where '1'='1"
+          id: "1; update books set title = 'hacked' where id = '1"
         }
       }, function(err, books) {
-        // we are expecting an error here
-        ok(err, 'no sqli error')
-        done()
+        if (err) return done() // postgres errors and that is cool
+        // mysql doesn't error, so let's make sure the injected sql didn't run
+        db.books.get(1, function(err, book) {
+          ok(book.title !== 'hacked', 'injected update ran')
+          done()
+        })
       })
     })
 
@@ -396,8 +386,11 @@ platforms.forEach(function(config) {
       db.books.save(newBook, function(err, book) {
         ok(!err, err)
         ok(book.id === 2, 'did not insert book')
-        ok(book.author_id === 2, 'did not insert author')
-        done()
+        book.hydrate('author', function(err) {
+          ok(!err, err)
+          ok(book.author_id === book.author.id, 'did not insert author')
+          done()
+        })
       })
     })
 
@@ -412,8 +405,11 @@ platforms.forEach(function(config) {
         book.save(function(err, book) {
           ok(!err, err)
           ok(book.id === 2, 'did not get book')
-          ok(book.author_id === 3, 'did not insert author')
-          done()
+          book.hydrate('author', function(err) {
+            ok(!err, err)
+            ok(book.author_id === book.author.id, 'did not insert author')
+            done()
+          })
         })
       })
     })

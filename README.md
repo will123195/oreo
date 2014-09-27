@@ -7,9 +7,9 @@
 # Features
 
 - Automatically discovers master/read-only hosts
-- Detects relationships (schema requires foreign keys)
-- Saves nested objects
+- Detects relationships (primary keys and foreign keys)
 - Optional object caching & memoization
+- Saves nested objects in a single transaction
 - Supports composite primary keys
 - Zero boilerplate
 
@@ -23,6 +23,8 @@
 ```bash
 npm install oreo
 npm install pg
+- or -
+npm install mysql
 ```
 
 # Quick Example
@@ -53,10 +55,10 @@ var oreo = require('oreo')
 
 // discover schema and replication topology
 var db = oreo({
-  driver: 'pg',
+  driver: 'mysql',
   hosts: ['localhost:5432'],
   name: 'my_db',
-  user: 'postgres',
+  user: 'root',
   pass: 'password',
   debug: false,
   memoize: 150, // ms
