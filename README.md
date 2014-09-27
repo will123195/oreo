@@ -12,6 +12,7 @@
 - Saves nested objects in a single transaction
 - Supports composite primary keys
 - Zero boilerplate
+- [co-oreo](https://github.com/will123195/co-oreo) wrapper available for [co](https://github.com/visionmedia/co)
 
 # Database Support
 
