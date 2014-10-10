@@ -98,7 +98,7 @@ platforms.forEach(function(config) {
     })
 
 
-    it('should save', function(done) {
+    it('should static save', function(done) {
       var data = {
         id: 15,
         name: 'Jim Bob'
@@ -278,7 +278,7 @@ platforms.forEach(function(config) {
     })
 
 
-    it('should save', function(done) {
+    it('should save a row instance', function(done) {
       db.authors.get(1, function(err, author) {
         ok(!err, err)
         var new_name = 'Jack2'
@@ -286,6 +286,7 @@ platforms.forEach(function(config) {
           name: new_name
         })
         author.save(function(err, author) {
+          ok(!err, err)
           ok(author.id === 1, 'did not get correct author')
           ok(author.name === new_name, 'did not save author')
           db.authors.get(1, function(err, author) {
@@ -302,7 +303,6 @@ platforms.forEach(function(config) {
       db.books._methods.getTitle = function() {
         return this.title
       }
-
       db.books.get(1, function(err, book) {
         ok(!err, err)
         ok(book.getTitle() === book.title, 'did not get title')
