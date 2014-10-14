@@ -1,6 +1,6 @@
 {
   "name": "oreo",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Simple ORM with schema detection",
   "main": "index.js",
   "scripts": {
@@ -37,7 +37,6 @@
   },
   "dependencies": {
     "async": "0.9.0",
-    "hide-property": "0.0.1",
-    "is-integer": "1.0.3"
+    "hide-property": "0.0.1"
   }
 }
