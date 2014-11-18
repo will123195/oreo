@@ -6,13 +6,11 @@
 
 # Features
 
-- Automatically discovers master/read-only hosts
 - Detects relationships (primary keys and foreign keys)
-- Optional object caching & memoization
 - Saves nested objects in a single transaction
+- Automatically discovers master/read-only hosts
 - Supports composite primary keys
-- Zero boilerplate
-- [co-oreo](https://github.com/will123195/co-oreo) wrapper available for [co](https://github.com/visionmedia/co)
+- Optional object caching & memoization
 
 # Database Support
 

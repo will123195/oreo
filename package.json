@@ -1,7 +1,7 @@
 {
   "name": "oreo",
-  "version": "0.0.8",
-  "description": "Simple ORM with schema detection",
+  "version": "0.0.9",
+  "description": "SQL CRUD Utility with schema detection",
   "main": "index.js",
   "scripts": {
     "test": "mocha -b"
@@ -22,7 +22,8 @@
     "sequelize",
     "persistence",
     "waterline",
-    "jugglingdb"
+    "jugglingdb",
+    "crud"
   ],
   "author": "will123195",
   "license": "MIT",
