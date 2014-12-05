@@ -8,9 +8,9 @@
 
 - Detects relationships (primary keys and foreign keys)
 - Saves nested objects in a single transaction
-- Automatically discovers master/read-only hosts
+- Automatically discovers writable/read-only hosts
 - Supports composite primary keys
-- Optional object caching & memoization
+- Optional row memoization and row caching
 
 # Database Support
 
@@ -31,11 +31,11 @@ npm install pg
 var oreo = require('oreo')
 
 var db = oreo({
-  driver: 'pg',
-  hosts: ['localhost:5432'],
+  driver: 'mysql',
+  hosts: ['localhost'],
   name: 'my_db',
-  user: 'postgres',
-  pass: 'password'
+  user: 'root',
+  pass: ''
 }, function(err) {
   // Get a row by primary key
   db.my_table_name.get(id, function(err, row) {
@@ -51,16 +51,16 @@ var db = oreo({
 ```js
 var oreo = require('oreo')
 
-// discover schema and replication topology
+// initialize oreo: auto-detects the schema and determines writable/read-only hosts
 var db = oreo({
-  driver: 'mysql',
+  driver: 'pg',
   hosts: ['localhost:5432'],
   name: 'my_db',
-  user: 'root',
+  user: 'username',
   pass: 'password',
-  debug: false,
-  memoize: 150, // ms
-  cache: redisClient
+  debug: console.log,
+  memoize: 150, // optional duration in ms to memoize rows
+  cache: redisClient // optional
 }, runExampleQueries)
 
 function runExampleQueries(err) {
@@ -165,6 +165,14 @@ CREATE TABLE books (
 Instantiates the `db` object and configures the database connection string(s).
 
 - **opts** {Object} options
+    - driver: `pg` or `mysql`
+    - hosts: array of possible hosts, each is checked to see if it is online and writable or read-only
+    - name: the database name
+    - user: the username
+    - password: the password
+    - debug: (optional) set to `console.log` to see info about running queries
+    - memoize: (optional) duration in milliseconds to cache rows in process memory. I like setting this to 150ms to prevent fetching a row multiple times simultaneously.
+    - cache: (optional) object with `get(key)` and/or `set(key, val)` methods (i.e. redis) to cache full rows (indefinitely). Cached rows are refreshed after `save()`/`insert()`/`update()` to keep the cache fresh. The [Table functions](#table) fetch rows from the cache (and only fetch from sql if the row is not cached). `find()` and `findOne()` only fetch primary keys from sql (typically should be a very fast in-memory index scan), then fetches the actual row from the cache.
 - **cb** {Function} *(optional)* callback(err)
 
 ```js
@@ -175,9 +183,9 @@ var db = oreo({
   name: 'database',
   user: 'username',
   pass: 'password',
-  //debug: false,
-  //memoize: 150, // ms to cache data objects in process memory
-  //cache: null // object with get/set methods to cache data objects, i.e. redisClient
+  //debug: console.log,
+  //memoize: 0,
+  //cache: null
 }, function(err) {
   db.execute('select now() as now', function(err, rs) {
     console.log('now:', rs[0].now)
