@@ -1,6 +1,6 @@
 {
   "name": "oreo",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "SQL CRUD Utility with schema detection",
   "main": "index.js",
   "scripts": {
