@@ -44,6 +44,34 @@ var db = oreo({
 }
 ```
 
+<hr />
+
+# Documentation
+
+## Main
+
+* [`oreo`](#instantiate)
+* [`discover`](#discover)
+* [`execute`](#execute)
+
+## Table
+
+* [`find`](#find)
+* [`findOne`](#findOne)
+* [`get`](#get)
+* [`insert`](#insert)
+* [`mget`](#mget)
+* [`save`](#table_save)
+
+## Row
+
+* [`hydrate`](#hydrate)
+* [`save`](#save)
+* [`set`](#set)
+* [`update`](#update)
+
+<hr />
+
 # Full Example
 
 &dagger; see the example database schema below
@@ -131,32 +159,6 @@ CREATE TABLE books (
 
 <hr />
 
-# Documentation
-
-## Main
-
-* [`oreo`](#instantiate)
-* [`discover`](#discover)
-* [`execute`](#execute)
-
-## Table
-
-* [`find`](#find)
-* [`findOne`](#findOne)
-* [`get`](#get)
-* [`insert`](#insert)
-* [`mget`](#mget)
-* [`save`](#table_save)
-
-## Row
-
-* [`hydrate`](#hydrate)
-* [`save`](#save)
-* [`set`](#set)
-* [`update`](#update)
-
-<hr />
-
 # Main
 
 <a name="instantiate" />
@@ -170,9 +172,9 @@ Instantiates the `db` object and configures the database connection string(s).
     - name: the database name
     - user: the username
     - password: the password
-    - debug: (optional) set to `console.log` to see info about running queries
-    - memoize: (optional) duration in milliseconds to cache rows in process memory. I like setting this to 150ms to prevent fetching a row multiple times simultaneously.
-    - cache: (optional) object with `get(key)` and/or `set(key, val)` methods (i.e. redis) to cache full rows (indefinitely). Cached rows are refreshed after `save()`/`insert()`/`update()` to keep the cache fresh. The [Table functions](#table) fetch rows from the cache (and only fetch from sql if the row is not cached). `find()` and `findOne()` only fetch primary keys from sql (typically should be a very fast in-memory index scan), then fetches the actual row from the cache.
+    - debug: (optional, default `false`) set to `console.log` to see info about running queries
+    - memoize: (optional, default `false`) duration in milliseconds to cache rows in process memory. I like setting this to 150ms to prevent fetching a row multiple times simultaneously.
+    - cache: (optional, default `false`) object with `get(key)` and/or `set(key, val)` methods (i.e. redis) to cache full rows (indefinitely). Cached rows are refreshed after `save()`/`insert()`/`update()` to keep the cache fresh. The [Table functions](#table) fetch rows from the cache (and only fetch from sql if the row is not cached). `find()` and `findOne()` only fetch primary keys from sql (typically should be a very fast in-memory index scan), then fetches the actual row from the cache.
 - **cb** {Function} *(optional)* callback(err)
 
 ```js

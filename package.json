@@ -23,6 +23,7 @@
     "persistence",
     "waterline",
     "jugglingdb",
+    "sql",
     "crud"
   ],
   "author": "will123195",

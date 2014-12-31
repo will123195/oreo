@@ -33,11 +33,11 @@ var oreo = module.exports = function oreo(opts, cb) {
   self._tables = []
   self._opts = opts
 
-  opts.debug = opts.debug || false
+  if (opts.debug && typeof opts.debug !== 'function') {
+    opts.debug = console.log
+  }
 
-  if (typeof opts.memoize === 'undefined' || opts.memoize > 0) {
-    opts.memoize = opts.memoize || 150
-  } else {
+  if (typeof opts.memoize !== 'number') {
     opts.memoize = false
   }
 

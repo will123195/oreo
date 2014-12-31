@@ -14,8 +14,18 @@ var platforms = [
     name: 'oreo_test',
     debug: false,
     silent: true,
-    //memoize: 150,
+    //memoize: 0,
     //cache: require('redis').createClient()
+  },
+  {
+    driver: 'pg',
+    user: 'postgres',
+    pass: 'postgres',
+    hosts: ['localhost:5432', 'localhost:5433', 'localhost:5430'],
+    name: 'oreo_test',
+    debug: false,
+    silent: true,
+    memoize: 150
   },
   {
     driver: 'mysql',
