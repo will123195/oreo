@@ -456,6 +456,8 @@ platforms.forEach(function(config) {
 
     // TODO: primary key id is specified for insert
 
+    // TODO: table has no primary key
+
   })
 
 
