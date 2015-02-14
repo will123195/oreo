@@ -450,15 +450,14 @@ platforms.forEach(function(config) {
     })
 
 
-    // TODO: more nested save tests
+    // TODO:
+    // more nested save tests
+    // composite primary key insert / update
+    // primary key id is specified for insert
+    // table has no primary key
+    // update table with javascript Date value
+    // test sql-injection during save - not just select
 
-    // TODO: composite primary key insert / update
-
-    // TODO: primary key id is specified for insert
-
-    // TODO: table has no primary key
-
-    // TODO: update table with javascript Date value
 
   })
 
