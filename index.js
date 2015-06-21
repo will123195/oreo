@@ -78,9 +78,10 @@ oreo.prototype.discover = function(cb) {
         if (self[table].fk) {
           Object.keys(self[table].fk).forEach(function(fkName) {
             var fk = self[table].fk[fkName]
-            self[fk.foreignTable].many = self[fk.foreignTable].many || []
-            var link = fk.constraintName + '_' + fk.table
-            self[fk.foreignTable].many[link] = fk
+            if (self[fk.foreignTable] && self[fk.foreignTable].many) {
+              var link = fk.constraintName + '_' + fk.table
+              self[fk.foreignTable].many[link] = fk
+            }
           })
         }
       })
