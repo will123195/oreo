@@ -6,10 +6,10 @@
 
 # Features
 
-- Detects relationships (primary keys and foreign keys)
+- Simple syntax for reading/writing to db
+- Detects relationships (primary and foreign keys)
 - Saves nested objects in a single transaction
-- Automatically discovers writable/read-only hosts
-- Supports composite primary keys
+- Great for multi-host replication
 - Optional row memoization and row caching
 
 # Database Support
@@ -27,6 +27,8 @@ npm install pg
 
 # Quick Example
 
+Assuming you have a table `artists`
+
 ```js
 var oreo = require('oreo')
 
@@ -37,9 +39,9 @@ var db = oreo({
   user: 'root',
   pass: ''
 }, function(err) {
-  // Get a row by primary key
-  db.my_table_name.get(id, function(err, row) {
-    console.log(row)
+  // Get an artist by primary key
+  db.artists.get(id, function(err, artist) {
+    console.log(artist)
   })
 }
 ```
