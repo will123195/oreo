@@ -53,7 +53,6 @@ var db = oreo({
 ## Main
 
 * [`oreo`](#instantiate)
-* [`discover`](#discover)
 * [`execute`](#execute)
 
 ## Table
@@ -95,6 +94,16 @@ var db = oreo({
 
 function runExampleQueries(err) {
 
+  // register a method to bind to all `Row` instances of `books`
+  db.books._methods.getTitle = function() {
+    return this.title
+  }
+
+  // get one book (by primary key)
+  db.books.get(1, function(err, book) {
+    // book.getTitle()
+  })
+
   // Insert a new book and its author
   db.books.insert({
     title: 'Fear and Loathing in Las Vegas',
@@ -112,11 +121,6 @@ function runExampleQueries(err) {
       db.books.mget(author.books, function(err, books) {
         console.log(books)
       })
-    })
-
-    // Get an author by primary key
-    db.authors.get(1, function(err, author) {
-      console.log(author)
     })
 
     // Find authors by criteria
@@ -193,34 +197,6 @@ var db = oreo({
 }, function(err) {
   db.execute('select now() as now', function(err, rs) {
     console.log('now:', rs[0].now)
-  })
-})
-```
-
-<a name="discover" />
-## db.discover( [cb] )
-
-Re-discover the schema in the database.
-
-- **cb** {Function} *(optional)* callback(err)
-
-For each table in the database, a property `db.<table_name>` whose value is a `Table` object will be defined.
-Automatically runs when oreo is instantiated. Also, you can specify methods that will be bound to each `Row` that is instantiated by `Table.get()`.
-
-```js
-db.discover(function(err) {
-  // the Table API (see docs below) is now available for each table:
-  // db.authors
-  // db.books
-
-  // bind a method to all "book" `Row` objects
-  db.books._methods.getTitle = function() {
-    return this.title
-  }
-
-  // for example:
-  db.books.get(1, function(err, book) {
-    // book.getTitle()
   })
 })
 ```
