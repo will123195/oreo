@@ -101,7 +101,8 @@ function runExampleQueries(err) {
 
   // get one book (by primary key)
   db.books.get(1, function(err, book) {
-    // book.getTitle()
+    // book.title
+    // book.getTitle() -- see above we registered this method
   })
 
   // Insert a new book and its author
