@@ -252,7 +252,7 @@ db.execute('select now()')
 # Table
 
 <a name="find" />
-## db.table.find( opts, [cb] )
+## db.***table***.find( opts, [cb] )
 
 Finds one or more rows:
 ```js
@@ -289,7 +289,7 @@ The `where` option has several valid formats:
 If no callback is provided a stream is returned.
 
 <a name="findOne" />
-## db.table.findOne( opts, [cb] )
+## db.***table***.findOne( opts, [cb] )
 
 Finds exactly one row:
 ```js
@@ -305,7 +305,7 @@ db.authors.findOne({
 If no callback is provided a stream is returned.
 
 <a name="get" />
-## db.table.get( primaryKey, [cb] )
+## db.***table***.get( primaryKey, [cb] )
 
 Finds a row by primary key:
 ```js
@@ -325,7 +325,7 @@ db.parts.get({
 ```
 
 <a name="insert" />
-## db.table.insert( data, [cb] )
+## db.***table***.insert( data, [cb] )
 
 Inserts a new row.
 ```js
@@ -356,7 +356,7 @@ db.books.insert({
 ```
 
 <a name="mget" />
-## db.table.mget( primaryKeys, [cb] )
+## db.***table***.mget( primaryKeys, [cb] )
 
 Gets many rows from the database by primary key:
 ```js
@@ -370,7 +370,7 @@ db.books.mget(bookIds, function(err, books) {
 If no callback is provided a stream is returned.
 
 <a name="table_save" />
-## db.table.save( data, [cb] )
+## db.***table***.save( data, [cb] )
 
 Inserts or updates depending on whether the primary key exists in the db.
 ```js
