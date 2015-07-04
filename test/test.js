@@ -4,7 +4,6 @@ var fs = require('fs')
 var util = require('util')
 
 var db
-var env = process.env
 var platforms = [
   {
     driver: 'pg',
@@ -13,9 +12,9 @@ var platforms = [
     hosts: ['localhost:5432', 'localhost:5433', 'localhost:5430'],
     name: 'oreo_test',
     debug: false,
-    silent: true,
+    silent: true
     //memoize: 0,
-    //cache: require('redis').createClient()
+    //cache: null
   },
   {
     driver: 'pg',
