@@ -338,13 +338,13 @@ platforms.forEach(function(config) {
     it('should prevent semicolon sqli', function(done) {
       db.books.find({
         where: {
-          id: "1; update books set title = 'hacked' where id = '1"
+          id: "1; update books set title = 'sqli' where id = '1"
         }
       }, function(err, books) {
         if (err) return done() // postgres errors and that is cool
         // mysql doesn't error, so let's make sure the injected sql didn't run
         db.books.get(1, function(err, book) {
-          ok(book.title !== 'hacked', 'injected update ran')
+          ok(book.title !== 'sqli', 'injected update ran')
           done()
         })
       })
