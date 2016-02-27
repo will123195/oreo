@@ -450,3 +450,9 @@ book.update({
   // { id: 1, title: New Title, author_id: 1 }
 })
 ```
+
+<a name="todo" />
+## TODO
+
+- backups
+- promises

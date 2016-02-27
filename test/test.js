@@ -151,6 +151,15 @@ platforms.forEach(function(config) {
     })
 
 
+    it('should find all', function(done) {
+      db.authors.find(function(err, authors) {
+        ok(!err, err)
+        ok(authors.length === 2, 'authors.length')
+        done()
+      })
+    })
+
+
     it('should find (where string)', function(done) {
       db.authors.find({
         where: "name = 'Jack Kerouac'"
@@ -457,6 +466,11 @@ platforms.forEach(function(config) {
     // update table with javascript Date value
     // test sql-injection during save - not just select
 
+
+    it('should kill the connection pool', function (done) {
+      db.end()
+      done()
+    })
 
   })
 

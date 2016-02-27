@@ -49,7 +49,6 @@ var oreo = module.exports = function oreo(opts, cb) {
 
 }
 
-
 /**
  * [discover description]
  */
@@ -86,9 +85,27 @@ oreo.prototype.discover = function(cb) {
         }
       })
 
+      self._onReady = self._onReady || []
+      self._onReady.forEach(function (fn) {
+        fn()
+      })
+
       cb(null, self)
     })
   })
 }
 
+/**
+ * Adds a function to the stack to be executed when the database is ready
+ */
+oreo.prototype.onReady = function(fn) {
+  this._onReady = this._onReady || []
+  this._onReady.push(fn)
+}
 
+/**
+ *
+ */
+oreo.prototype.end = function() {
+  this._platform.end()
+}
