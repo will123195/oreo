@@ -9,6 +9,7 @@
 - Simple syntax for reading/writing to db
 - Detects relationships (primary and foreign keys)
 - Saves nested objects in a single transaction
+- Has just 1 dependency (async)
 - Great for multi-host replication
 - Optional row memoization and row caching
 

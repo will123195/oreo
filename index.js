@@ -1,7 +1,7 @@
 var query = require('./lib/query')
 var async = require('async')
 var Table = require('./lib/table')
-var hide = require('hide-property')
+var hide = require('./lib/hide-property')
 
 var supportedDrivers = [
   'pg',
