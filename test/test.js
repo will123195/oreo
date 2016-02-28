@@ -9,7 +9,7 @@ var platforms = [
   {
     driver: 'pg',
     user: 'postgres',
-    pass: 'postgres',
+    pass: '',
     hosts: ['localhost:5432', 'localhost:5433', 'localhost:5430'],
     name: 'oreo_test',
     debug: false,
@@ -21,7 +21,7 @@ var platforms = [
   {
     driver: 'pg',
     user: 'postgres',
-    pass: 'postgres',
+    pass: '',
     hosts: ['localhost:5432', 'localhost:5433', 'localhost:5430'],
     name: 'oreo_test',
     debug: false,
@@ -106,8 +106,10 @@ platforms.forEach(function(config) {
     it('should rediscover - promise', function(done) {
       db.discover().then(function() {
         ok(!!db.authors, 'authors not discovered')
+        ok(!!db.books, 'books not discovered')
+        ok(!!db.ratings, 'ratings not discovered')
         done()
-      })
+      }).catch(console.log)
     })
 
     it('should insert - cb', function(done) {
@@ -260,6 +262,20 @@ platforms.forEach(function(config) {
         done()
       })
     })
+
+    // TODO parameterized where arrays
+    //
+    // it('should find (where parameterized array)', function(done) {
+    //   db.authors.find({
+    //     where: ["name = :name"]
+    //   }, {
+    //     name: 'Jack Kerouac'
+    //   }, function(err, authors) {
+    //     ok(!err, err)
+    //     ok(authors[0].id === 1, 'did not find author')
+    //     done()
+    //   })
+    // })
 
     it('should find (where object)', function(done) {
       db.authors.find({

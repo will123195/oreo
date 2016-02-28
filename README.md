@@ -56,7 +56,7 @@ var db = oreo({
 
 * [`oreo`](#instantiate)
 
-## DB
+## Db
 
 * [`execute`](#execute)
 * [`executeWrite`](#executeWrite)
@@ -213,7 +213,7 @@ var db = oreo({
 })
 ```
 
-# DB
+# Db
 
 <a name="execute" />
 ## db.execute( sql, [data], [options], [cb] )
