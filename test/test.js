@@ -24,8 +24,7 @@ var platforms = [
     name: 'oreo_test',
     debug: false,
     silent: true,
-    memoize: 150,
-    Promise: bluebird
+    memoize: 150
   },
   {
     driver: 'mysql',
