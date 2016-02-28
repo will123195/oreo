@@ -213,6 +213,8 @@ var db = oreo({
 })
 ```
 
+If no callback is provided a Promise is returned.
+
 # Db
 
 <a name="execute" />
@@ -270,10 +272,10 @@ Same as `execute()` but executes the query on a writable (master) host.
 Queues a function to be called when oreo's schema detection is complete (i.e. when oreo is initialized).
 
 ```js
-var db = oreo(config)
-  .then(function () {
-    console.log('Ready!')
-  })
+var db = oreo(config, function (err) {
+  if (err) return console.log(err)
+  console.log('Ready!')
+})
 db.onReady(function () {
   console.log('onReady #1')
 })
