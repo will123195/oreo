@@ -24,7 +24,8 @@ var platforms = [
     name: 'oreo_test',
     debug: false,
     silent: true,
-    memoize: 150
+    memoize: 150,
+    Promise: bluebird
   },
   {
     driver: 'mysql',
@@ -36,6 +37,25 @@ var platforms = [
     silent: true
   }
 ]
+
+var mockRedis = function() {
+  var cache = {}
+  return {
+    get: function(key, cb) {
+      var val = cache[key]
+      if (val) {
+        val = JSON.parse(val)
+        val.fromCache = true
+        val = JSON.stringify(val)
+      }
+      cb(null, val)
+    },
+    set: function(key, val, cb) {
+      cache[key] = val
+      cb(null)
+    }
+  }
+}
 
 it('should fail with unknown driver', function(done) {
   db = oreo({
@@ -50,26 +70,29 @@ platforms.forEach(function(config) {
 
   describe('oreo', function() {
 
-    it('should connect and discover', function(done) {
+    it('should connect and discover - cb', function(done) {
       console.log('\n', config.driver)
-
       db = oreo(config, function(err) {
         ok(!err, err)
         done()
       })
     })
 
+    it('should connect and discover - promise', function(done) {
+      oreo(config).then(function() {
+        done()
+      })
+    })
 
     it('should create tables', function(done) {
       var sql = fs.readFileSync(__dirname + '/schema/' + config.driver + '.sql', 'utf8')
-      db.execute(sql, null, {write: true}, function(err, rs) {
+      db.executeWrite(sql, function(err, rs) {
         ok(!err, err)
         done()
       })
     })
 
-
-    it('should rediscover', function(done) {
+    it('should rediscover - cb', function(done) {
       db.discover(function(err) {
         ok(!err, err)
         ok(!!db.authors, 'authors not discovered')
@@ -77,21 +100,25 @@ platforms.forEach(function(config) {
       })
     })
 
+    it('should rediscover - promise', function(done) {
+      db.discover().then(function() {
+        ok(!!db.authors, 'authors not discovered')
+        done()
+      })
+    })
 
-    it('should insert', function(done) {
+    it('should insert - cb', function(done) {
       db.authors.insert({
         name: 'Jack Kerouac'
       }, function(err, author) {
         ok(!err, err)
         ok(author.id === 1, 'did not insert author - should insert')
-
         db.books.insert({
           title: 'On the Road',
           author_id: 1
         }, function(err, book) {
           ok(!err, err)
           ok(book.id === 1, 'did not insert book')
-
           db.ratings.insert({
             author_id: 1,
             book_id: 1,
@@ -101,30 +128,63 @@ platforms.forEach(function(config) {
             ok(rating.rating === 10, 'did not insert rating')
             done()
           })
-
         })
       })
     })
 
+    it('should insert - promise', function(done) {
+      db.authors.insert({
+        name: 'Tom Wolfe'
+      }).then(function(author) {
+        ok(author.id === 2, 'did not insert author - should insert')
+        db.books.insert({
+          title: 'The Electric Kool-Aid Acid Test',
+          author_id: 2
+        }).then(function(book) {
+          ok(book.id === 2, 'did not insert book')
+          db.ratings.insert({
+            author_id: 2,
+            book_id: 2,
+            rating: 9
+          }).then(function(rating) {
+            ok(rating.rating === 9, 'did not insert rating')
+            done()
+          })
+        })
+      })
+    })
 
-    it('should static save', function(done) {
+    it('should static save - cb', function(done) {
       var data = {
-        id: 15,
-        name: 'Jim Bob'
+        id: 1408,
+        name: 'Stephen King'
       }
       db.authors.save(data, function(err, author) {
         ok(!err, err)
-        ok(author.id === 15, 'did not insert author')
+        ok(author.id === 1408, 'did not insert author')
         db.authors.save(data, function(err, author) {
           ok(!err, err)
-          ok(author.id === 15, 'did not update author')
+          ok(author.id === 1408, 'did not update author')
           done()
         })
       })
     })
 
+    it('should static save - promise', function(done) {
+      var data = {
+        id: 1984,
+        name: 'George Orwell'
+      }
+      db.authors.save(data).then(function(author) {
+        ok(author.id === 1984, 'did not insert author')
+        db.authors.save(data).then(function(author) {
+          ok(author.id === 1984, 'did not update author')
+          done()
+        })
+      })
+    })
 
-    it('should get', function(done) {
+    it('should get - cb', function(done) {
       db.authors.get(1, function(err, author) {
         ok(!err, err)
         ok(author.id === 1, 'did not get author')
@@ -132,8 +192,14 @@ platforms.forEach(function(config) {
       })
     })
 
+    it('should get - promise', function(done) {
+      db.authors.get(1).then(function(author) {
+        ok(author.id === 1, 'did not get author')
+        done()
+      })
+    })
 
-    it('should mget', function(done) {
+    it('should mget - cb', function(done) {
       db.authors.mget([1], function(err, authors) {
         ok(!err, err)
         ok(authors[0].id === 1, 'did not get authors')
@@ -141,6 +207,13 @@ platforms.forEach(function(config) {
       })
     })
 
+    it('should mget - promise', function(done) {
+      db.authors.mget([1, 1984]).then(function(authors) {
+        ok(authors[0].id === 1, 'did not get first author')
+        ok(authors[1].id === 1984, 'did not get second author')
+        done()
+      })
+    })
 
     it('should get (composite primary key)', function(done) {
       db.ratings.get([1, 1], function(err, rating) {
@@ -150,15 +223,20 @@ platforms.forEach(function(config) {
       })
     })
 
-
-    it('should find all', function(done) {
+    it('should find all - cb', function(done) {
       db.authors.find(function(err, authors) {
         ok(!err, err)
-        ok(authors.length === 2, 'authors.length')
+        ok(authors.length === 4, 'authors.length')
         done()
       })
     })
 
+    it('should find all - promise', function(done) {
+      db.authors.find().then(function(authors) {
+        ok(authors.length === 4, 'authors.length')
+        done()
+      })
+    })
 
     it('should find (where string)', function(done) {
       db.authors.find({
@@ -170,7 +248,6 @@ platforms.forEach(function(config) {
       })
     })
 
-
     it('should find (where array)', function(done) {
       db.authors.find({
         where: ["name = 'Jack Kerouac'"]
@@ -180,7 +257,6 @@ platforms.forEach(function(config) {
         done()
       })
     })
-
 
     it('should find (where object)', function(done) {
       db.authors.find({
@@ -194,7 +270,6 @@ platforms.forEach(function(config) {
       })
     })
 
-
     it('should find (composite primary key)', function(done) {
       db.ratings.find({
         where: {
@@ -207,26 +282,37 @@ platforms.forEach(function(config) {
       })
     })
 
-
     it('should order by', function(done) {
-      // TODO
-      done()
+      db.authors.find({
+        order: 'id desc'
+      }).then(function(authors) {
+        ok(authors[0].id === 1984, 'order first')
+        ok(authors[1].id === 1408, 'order second')
+        done()
+      })
     })
-
 
     it('should limit', function(done) {
-      // TODO
-      done()
+      db.authors.find({
+        limit: 2
+      }).then(function(authors) {
+        ok(authors.length === 2, 'limit')
+        done()
+      })
     })
-
 
     it('should offset', function(done) {
-      // TODO
-      done()
+      db.authors.find({
+        order: 'id desc',
+        limit: 1,
+        offset: 1
+      }).then(function(authors) {
+        ok(authors[0].id === 1408, 'offset')
+        done()
+      })
     })
 
-
-    it('should findOne', function(done) {
+    it('should findOne - cb', function(done) {
       db.authors.findOne({
         where: "name = 'Jack Kerouac'"
       }, function(err, author) {
@@ -236,8 +322,16 @@ platforms.forEach(function(config) {
       })
     })
 
+    it('should findOne - promise', function(done) {
+      db.authors.findOne({
+        where: "name = 'Jack Kerouac'"
+      }).then(function(author) {
+        ok(author.id === 1, 'did not findOne author')
+        done()
+      })
+    })
 
-    it('should update', function(done) {
+    it('should update - cb', function(done) {
       db.authors.get(1, function(err, author) {
         ok(!err, err)
         var new_name = 'Jim Kerouac'
@@ -251,8 +345,20 @@ platforms.forEach(function(config) {
       })
     })
 
+    it('should update - promise', function(done) {
+      db.authors.get(1).then(function(author) {
+        var new_name = 'Jeff Kerouac'
+        author.update({
+          name: new_name
+        }).then(function(author) {
+          ok(author.id === 1, 'did not get correct author')
+          ok(author.name === new_name, 'did not update author')
+          done()
+        })
+      })
+    })
 
-    it('should hydrate', function(done) {
+    it('should hydrate - cb', function(done) {
       db.books.get(1, function(err, book) {
         ok(!err, err)
         book.hydrate('author', function(err) {
@@ -263,6 +369,15 @@ platforms.forEach(function(config) {
       })
     })
 
+    it('should hydrate - promise', function(done) {
+      db.books.get(1).then(function(book) {
+        book.hydrate('author').then(function() {
+          ok(book.author.id === book.author_id, 'did not hydrate author')
+          ok(book.id === 1, 'weird')
+          done()
+        })
+      })
+    })
 
     it('should hydrate composite foreign key', function(done) {
       db.samples.insert({
@@ -280,7 +395,6 @@ platforms.forEach(function(config) {
       })
     })
 
-
     it('should set', function(done) {
       db.authors.get(1, function(err, author) {
         ok(!err, err)
@@ -295,8 +409,7 @@ platforms.forEach(function(config) {
       })
     })
 
-
-    it('should save a row instance', function(done) {
+    it('should save a row instance - cb', function(done) {
       db.authors.get(1, function(err, author) {
         ok(!err, err)
         var new_name = 'Jack2'
@@ -309,13 +422,29 @@ platforms.forEach(function(config) {
           ok(author.name === new_name, 'did not save author')
           db.authors.get(1, function(err, author) {
             ok(!err, err)
-            ok(author.name === new_name, config.driver + ' did not save new name')
+            ok(author.name === new_name, 'did not save new name')
             done()
           })
         })
       })
     })
 
+    it('should save a row instance - promise', function(done) {
+      db.authors.get(1).then(function(author) {
+        var new_name = 'Jack3'
+        author.set({
+          name: new_name
+        })
+        author.save().then(function(author) {
+          ok(author.id === 1, 'did not get correct author')
+          ok(author.name === new_name, 'did not save author')
+          db.authors.get(1).then(function(author) {
+            ok(author.name === new_name, 'did not save new name')
+            done()
+          })
+        })
+      })
+    })
 
     it('should bind row methods', function(done) {
       db.books._methods.getTitle = function() {
@@ -328,14 +457,13 @@ platforms.forEach(function(config) {
       })
     })
 
-
-    it('should execute parameterized query', function(done) {
+    it('should execute parameterized query - cb', function(done) {
       db.execute([
         'select id',
         'from authors',
         'where name = :name'
       ], {
-        name: 'Jack2',
+        name: 'Jack3',
       }, function(err, rs) {
         ok(!err, err)
         ok(rs[0].id === 1, 'wrong record')
@@ -343,6 +471,18 @@ platforms.forEach(function(config) {
       })
     })
 
+    it('should execute parameterized query - promise', function(done) {
+      db.execute([
+        'select id',
+        'from authors',
+        'where name = :name'
+      ], {
+        name: 'Jack3',
+      }).then(function(rs) {
+        ok(rs[0].id === 1, 'wrong record')
+        done()
+      })
+    })
 
     it('should prevent semicolon sqli', function(done) {
       db.books.find({
@@ -359,23 +499,8 @@ platforms.forEach(function(config) {
       })
     })
 
-
-    it('should cache', function(done) {
-      var gotValueFromCache = false;
-      // a simple mock-redis client object
-      db.books.db._opts.cache = function() {
-        var cache = {}
-        return {
-          get: function(key, cb) {
-            gotValueFromCache = true
-            cb(null, cache[key])
-          },
-          set: function(key, val, cb) {
-            cache[key] = val
-            cb(null)
-          }
-        }
-      }()
+    it('should cache - cb', function(done) {
+      db.books.db._opts.cache = mockRedis()
       db.books.get(1, function(err, book) {
         ok(!err, err)
         var new_title = 'New Title'
@@ -386,16 +511,32 @@ platforms.forEach(function(config) {
           db.books.get(1, function(err, book) {
             ok(!err, err)
             ok(book.title === new_title, 'did not save new title')
-            ok(gotValueFromCache, 'did not get value from cache')
+            ok(book.fromCache, 'did not get value from cache')
             done()
           })
         })
       })
     })
 
+    it('should cache - promise', function(done) {
+      db.books.get(1).then(function(book) {
+        var new_title = 'New Title2'
+        book.update({
+          title: new_title
+        }).then(function() {
+          db.books.get(1).then(function(book) {
+            ok(book.title === new_title, 'did not save new title')
+            ok(book.fromCache, 'did not get value from cache')
+            db.books.db._opts.cache = null
+            done()
+          })
+        })
+      })
+    })
 
     it('should save 1-to-1 nested object (insert + insert)', function(done) {
       var newBook = {
+        id: 11,
         title: 'Book #1',
         author: {
           name: 'Author #1'
@@ -403,7 +544,7 @@ platforms.forEach(function(config) {
       }
       db.books.save(newBook, function(err, book) {
         ok(!err, err)
-        ok(book.id === 2, 'did not insert book')
+        ok(book.id === 11, 'did not insert book')
         book.hydrate('author', function(err) {
           ok(!err, err)
           ok(book.author_id === book.author.id, 'did not insert author')
@@ -412,26 +553,21 @@ platforms.forEach(function(config) {
       })
     })
 
-
-    it('should save 1-to-1 nested object (update + insert)', function(done) {
-      db.books.get(2, function(err, book) {
-        ok(!err, err)
+    it('should save 1-to-1 nested object (update + insert) - promise', function(done) {
+      db.books.get(2).then(function(book) {
         // replace the book's author with a newly inserted author
         book.author = {
           name: 'Author #2'
         }
-        book.save(function(err, book) {
-          ok(!err, err)
+        book.save().then(function(book) {
           ok(book.id === 2, 'did not get book')
-          book.hydrate('author', function(err) {
-            ok(!err, err)
+          book.hydrate('author').then(function() {
             ok(book.author_id === book.author.id, 'did not insert author')
             done()
           })
         })
       })
     })
-
 
     it('should save 1-to-1-to-1 nested objects (insert + insert + insert)', function(done) {
       var newBookData = {
@@ -457,7 +593,6 @@ platforms.forEach(function(config) {
       })
     })
 
-
     // TODO:
     // more nested save tests
     // composite primary key insert / update
@@ -465,7 +600,7 @@ platforms.forEach(function(config) {
     // table has no primary key
     // update table with javascript Date value
     // test sql-injection during save - not just select
-
+    // onReady
 
     it('should kill the connection pool', function (done) {
       db.end()
@@ -473,6 +608,4 @@ platforms.forEach(function(config) {
     })
 
   })
-
-
 })

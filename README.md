@@ -10,7 +10,8 @@
 - Detects relationships (primary and foreign keys)
 - Saves nested objects in a single transaction
 - Has just 1 dependency (async)
-- Great for multi-host replication
+- Detects master/slave hosts
+- Use callbacks or plug in your own Promise library
 - Optional row memoization and row caching
 
 # Database Support
@@ -39,9 +40,9 @@ var db = oreo({
   name: 'my_db',
   user: 'root',
   pass: ''
-}, function(err) {
+}, function (err) {
   // Get an artist by primary key
-  db.artists.get(id, function(err, artist) {
+  db.artists.get(id, function (err, artist) {
     console.log(artist)
   })
 }
@@ -55,6 +56,9 @@ var db = oreo({
 
 * [`oreo`](#instantiate)
 * [`execute`](#execute)
+* [`executeWrite`](#executeWrite)
+* [`onReady`](#onReady)
+* [`end`](#end)
 
 ## Table
 
@@ -90,18 +94,19 @@ var db = oreo({
   pass: 'password',
   debug: console.log,
   memoize: 150, // optional duration in ms to memoize rows
-  cache: redisClient // optional
+  cache: redisClient, // optional
+  Promise: Promise // optional
 }, runExampleQueries)
 
 function runExampleQueries(err) {
 
   // register a method to bind to all `Row` instances of `books`
-  db.books._methods.getTitle = function() {
+  db.books._methods.getTitle = function () {
     return this.title
   }
 
   // get one book (by primary key)
-  db.books.get(1, function(err, book) {
+  db.books.get(1, function (err, book) {
     // book.title
     // book.getTitle() -- see above we registered this method
   })
@@ -112,15 +117,15 @@ function runExampleQueries(err) {
     author: {
       name: 'Hunter S.Thompson'
     }
-  }, function(err, book) {
+  }, function (err, book) {
     console.log(book) // { id: 1, title: Fear and Loathing in Las Vegas, author_id: 1 }
 
     // Get a linked object
-    book.hydrate('author', function(err, author) {
+    book.hydrate('author', function (err, author) {
       console.log(book.author) // { id: 1, name: Hunter S. Thompson, books: [] }
 
       // Get multiple books using array of primary keys
-      db.books.mget(author.books, function(err, books) {
+      db.books.mget(author.books, function (err, books) {
         console.log(books)
       })
     })
@@ -130,14 +135,14 @@ function runExampleQueries(err) {
       where: {
         author_id: 1
       }
-    }, function(err, authors) {
+    }, function (err, authors) {
       console.log(authors) // [{ id: 1, name: Hunter S. Thompson, books: [] }]
     })
 
     // Update the book
     book.update({
       title: 'The Rum Diary'
-    }, function(err, book) {
+    }, function (err, book) {
       console.log(book) // { id: 1, title: The Rum Diary, author_id: 1 }
     })
   })
@@ -183,6 +188,7 @@ Instantiates the `db` object and configures the database connection string(s).
     - debug: (optional, default `false`) set to `console.log` to see info about running queries
     - memoize: (optional, default `false`) duration in milliseconds to cache rows in process memory. I like setting this to 150ms to prevent fetching a row multiple times simultaneously.
     - cache: (optional, default `false`) object with `get(key)` and/or `set(key, val)` methods (i.e. redis) to cache full rows (indefinitely). Cached rows are refreshed after `save()`/`insert()`/`update()` to keep the cache fresh. The [Table functions](#table) fetch rows from the cache (and only fetch from sql if the row is not cached). `find()` and `findOne()` only fetch primary keys from sql (typically should be a very fast in-memory index scan), then fetches the actual row from the cache.
+    - Promise: (optional, default `global.Promise`) You may plug in your own Promise library that is compatible with native promises, i.e. `Promise: require('bluebird')`. Then a promise will be returned if a callback is not specified.
 - **cb** {Function} *(optional)* callback(err)
 
 ```js
@@ -193,21 +199,22 @@ var db = oreo({
   name: 'database',
   user: 'username',
   pass: 'password',
-  //debug: console.log,
+  //debug: false, //console.log
   //memoize: 0,
-  //cache: null
-}, function(err) {
-  db.execute('select now() as now', function(err, rs) {
+  //cache: null,
+  //Promise: global.Promise
+}, function (err) {
+  db.execute('select now() as now', function (err, rs) {
     console.log('now:', rs[0].now)
   })
 })
 ```
 
 <a name="execute" />
-## db.execute( query, [data], [options], [cb] )
+## db.execute( sql, [data], [options], [cb] )
 
 Executes an arbitrary SQL query.
-- **query** {String|Array} the SQL statement
+- **sql** {String|Array} the SQL statement
 - **data** {Object} *(optional, unless `options` is specified)* parameterized query data
 - **options** {Object} *(optional)* query options
     - `write` *(optional)* if truthy, forces query to run on master db, otherwise attempts to run on a read-only host
@@ -218,7 +225,7 @@ Executes an arbitrary SQL query.
 db.execute([
   'select now()', // arrays can be used for multi-line convenience
   'as now'
-], function(err, rs) {
+], function (err, rs) {
   console.log(rs[0]) // 2014-06-24 21:03:08.652861-04
 })
 ```
@@ -231,24 +238,55 @@ db.execute([
   'where name = :name'
 ], {
   name: 'Jack Kerouac',
-}, function(err, rs) {
-  console.log(rs[0].id) // 1
+}, function (err, rows) {
+  console.log(rows[0].id) // 1
 })
 ```
 
-If no callback is provided a stream is returned:
+If no callback is provided a Promise is returned:
 ```js
 db.execute('select now()')
-.on('data', function(row) {
+  .then(function (rows) {
 
+  })
+  .catch(function (err) {
+
+  })
+```
+
+<a name="executeWrite" />
+## db.executeWrite( sql, [data], [options], [cb] )
+
+Same as `execute()` but executes the query on a writable (master) host.
+
+<a name="onReady" />
+## db.onReady( fn )
+
+Queues a function to be called when oreo's schema detection is complete.
+
+```js
+var db = oreo(config)
+  .then(function () {
+    console.log('Ready!')
+  })
+db.onReady(function () {
+  console.log('onReady #1')
 })
-.on('error', function(error) {
-
-})
-.on('end', function(result) {
-
+db.onReady(function () {
+  console.log('onReady #2')
 })
 ```
+Output:
+```
+onReady #1
+onReady #2
+Ready!
+```
+
+<a name="end" />
+## db.end()
+
+Close the db connection(s).
 
 # Table
 
@@ -262,7 +300,7 @@ db.authors.find({
   order: 'name asc',
   offset: 5,
   limit: 5
-}, function(err, authors) {
+}, function (err, authors) {
   console.log(authors[0].id) // 1
 })
 ```
@@ -287,7 +325,7 @@ The `where` option has several valid formats:
     }
     ```
 
-If no callback is provided a stream is returned.
+If no callback is provided a Promise is returned.
 
 <a name="findOne" />
 ## db.***table***.findOne( opts, [cb] )
@@ -298,19 +336,19 @@ db.authors.findOne({
   where: ["name ilike 'Jack%'"],
   order: 'name asc',
   offset: 5
-}, function(err, author) {
+}, function (err, author) {
   console.log(author.id) // 1
 })
 ```
 
-If no callback is provided a stream is returned.
+If no callback is provided a Promise is returned.
 
 <a name="get" />
 ## db.***table***.get( primaryKey, [cb] )
 
 Finds a row by primary key:
 ```js
-db.authors.get(1, function(err, author) {
+db.authors.get(1, function (err, author) {
   console.log(author) // { id: 1, name: Jack Kerouak, books: [1] }
 })
 ```
@@ -320,10 +358,12 @@ Multi-column (composite) primary key:
 db.parts.get({
   company: 'Cogswell Cogs',
   part_no: 'A-12345'
-}, function(err, part) {
+}, function (err, part) {
 
 })
 ```
+
+If no callback is provided a Promise is returned.
 
 <a name="insert" />
 ## db.***table***.insert( data, [cb] )
@@ -333,7 +373,7 @@ Inserts a new row.
 db.books.insert({
   title: 'On the Road',
   author_id: 1
-}, function(err, book) {
+}, function (err, book) {
   console.log(book)
   // { id: 1, title: On the Road, author_id: 1 }
 })
@@ -346,15 +386,17 @@ db.books.insert({
   author: {
     name: 'Jack Kerouac'
   }
-}, function(err, book) {
+}, function (err, book) {
   console.log(book)
   // { id: 1, title: On the Road, author_id: 1 }
-  book.hydrate(function(err, book) {
+  book.hydrate(function (err, book) {
     console.log(book)
     // { id: 1, title: On the Road, author_id: 1, author: { id: 1, name: Jack Kerouac, books: [1] } }
   })
 })
 ```
+
+If no callback is provided a Promise is returned.
 
 <a name="mget" />
 ## db.***table***.mget( primaryKeys, [cb] )
@@ -362,13 +404,13 @@ db.books.insert({
 Gets many rows from the database by primary key:
 ```js
 var bookIds = [1]
-db.books.mget(bookIds, function(err, books) {
+db.books.mget(bookIds, function (err, books) {
   console.log(books)
   // [ { id: 1, title: On the Road, author_id: 1 } ]
 })
 ```
 
-If no callback is provided a stream is returned.
+If no callback is provided a Promise is returned.
 
 <a name="table_save" />
 ## db.***table***.save( data, [cb] )
@@ -379,11 +421,13 @@ var formPOST = {
   id: 1,
   title: 'New Title'
 }
-db.books.save(formPOST, function(err, book) {
+db.books.save(formPOST, function (err, book) {
   console.log(book)
   // { id: 1, title: New Title, author_id: 1 }
 })
 ```
+
+If no callback is provided a Promise is returned.
 
 # Row
 
@@ -392,10 +436,10 @@ db.books.save(formPOST, function(err, book) {
 
 Gets the linked record (foreign key)
 ```js
-db.books.get(1, function(err, book) {
+db.books.get(1, function (err, book) {
   console.log(book)
   // { id: 1, title: On the Road, author_id: 1 }
-  book.hydrate('author', function(err) {
+  book.hydrate('author', function (err) {
     console.log(book)
     // {
     //   id: 1,
@@ -407,28 +451,32 @@ db.books.get(1, function(err, book) {
 })
 ```
 
+If no callback is provided a Promise is returned.
+
 <a name="save" />
 ## row.save( [cb] )
 
 Saves the modified property values to the database (recursively):
 ```js
-db.books.get(1, function(err, book) {
+db.books.get(1, function (err, book) {
   console.log(book)
   // { id: 1, title: On the Road, author_id: 1 }
   book.author_id = 2
-  book.save(function(err, book) {
+  book.save(function (err, book) {
     console.log(book)
     // { id: 1, title: On the Road, author_id: 2 }
   })
 })
 ```
 
+If no callback is provided a Promise is returned.
+
 <a name="set" />
 ## row.set( data )
 
 Sets multiple property values but does not save yet:
 ```js
-db.books.get(1, function(err, book) {
+db.books.get(1, function (err, book) {
   console.log(book)
   // { id: 1, title: On the Road, author_id: 1 }
   book.set({
@@ -446,14 +494,14 @@ Update an existing row:
 ```js
 book.update({
   title: 'New Title'
-}, function(err, book) {
+}, function (err, book) {
   console.log(book)
   // { id: 1, title: New Title, author_id: 1 }
 })
 ```
 
-<a name="todo" />
-## TODO
+If no callback is provided a Promise is returned.
 
-- backups
-- promises
+## Known Issues
+
+- Tables containing `JSON` data type are not supported (use `JSONB` instead!)

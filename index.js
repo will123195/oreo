@@ -1,7 +1,8 @@
-var query = require('./lib/query')
 var async = require('async')
+var query = require('./lib/query')
 var Table = require('./lib/table')
-var hide = require('./lib/hide-property')
+var hide = require('./lib/hideProperty')
+var promiseResolver = require('./lib/promiseResolver')
 
 var supportedDrivers = [
   'pg',
@@ -19,6 +20,18 @@ var oreo = module.exports = function oreo(opts, cb) {
   hide(self, '_driver')
   hide(self, '_platform')
   hide(self, '_query')
+  hide(self, '_tables')
+  hide(self, '_opts')
+  hide(self, '_Promise')
+  hide(self, '_promiseResolver')
+  hide(self, '_onReady')
+
+  self._tables = []
+  self._opts = Object.assign({}, opts)
+  self._Promise = opts.Promise
+  self._promiseResolver = promiseResolver
+
+  cb = cb || self._promiseResolver()
 
   if (supportedDrivers.indexOf(opts.driver) === -1) {
     return cb(new Error('"' + opts.driver + '" is not a supported driver.'))
@@ -29,9 +42,6 @@ var oreo = module.exports = function oreo(opts, cb) {
   // bind the platform-specific methods to this
   self._platform = require('./lib/platforms/' + opts.driver)
   self._platform.db = self
-
-  self._tables = []
-  self._opts = opts
 
   if (opts.debug && typeof opts.debug !== 'function') {
     opts.debug = console.log
@@ -44,20 +54,22 @@ var oreo = module.exports = function oreo(opts, cb) {
   self._query = query(self, opts, function() {
     self._opts.pass = '***************' // obfuscate the password
     self.execute = self._query.execute.bind(self._query)
+    self.executeWrite = self._query.executeWrite.bind(self._query)
     self.discover(cb)
   })
 
+  return cb.promise ? cb.promise : this
 }
 
 /**
  * [discover description]
  */
 oreo.prototype.discover = function(cb) {
-
-  cb = cb || function(){}
   var sql
   var self = this
   self._tables = []
+
+  cb = cb || self._promiseResolver()
 
   // get the tables
   self._platform.getTables(function(err, tables) {
@@ -93,6 +105,8 @@ oreo.prototype.discover = function(cb) {
       cb(null, self)
     })
   })
+
+  return cb.promise ? cb.promise : this
 }
 
 /**
@@ -106,6 +120,6 @@ oreo.prototype.onReady = function(fn) {
 /**
  *
  */
-oreo.prototype.end = function() {
-  this._platform.end()
+oreo.prototype.end = function(cb) {
+  this._platform.end(cb)
 }

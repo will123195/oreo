@@ -16,6 +16,7 @@ CREATE TABLE authors (
   name VARCHAR,
   books INTEGER[],
   country VARCHAR,
+  data JSONB,
   CONSTRAINT authors_pkey PRIMARY KEY(id),
   CONSTRAINT country FOREIGN KEY (country) REFERENCES countries(code)
 );
