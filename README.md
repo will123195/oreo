@@ -52,9 +52,12 @@ var db = oreo({
 
 # Documentation
 
-## Main
+## Usage
 
 * [`oreo`](#instantiate)
+
+## DB
+
 * [`execute`](#execute)
 * [`executeWrite`](#executeWrite)
 * [`onReady`](#onReady)
@@ -172,7 +175,7 @@ CREATE TABLE books (
 
 <hr />
 
-# Main
+# Usage
 
 <a name="instantiate" />
 ## oreo( opts, [cb] )
@@ -209,6 +212,8 @@ var db = oreo({
   })
 })
 ```
+
+# DB
 
 <a name="execute" />
 ## db.execute( sql, [data], [options], [cb] )
@@ -262,7 +267,7 @@ Same as `execute()` but executes the query on a writable (master) host.
 <a name="onReady" />
 ## db.onReady( fn )
 
-Queues a function to be called when oreo's schema detection is complete.
+Queues a function to be called when oreo's schema detection is complete (i.e. when oreo is initialized).
 
 ```js
 var db = oreo(config)
