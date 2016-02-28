@@ -3,6 +3,7 @@ var query = require('./lib/query')
 var Table = require('./lib/table')
 var hide = require('./lib/hideProperty')
 var promiseResolver = require('./lib/promiseResolver')
+var extend = require('./lib/extend')
 
 var supportedDrivers = [
   'pg',
@@ -27,7 +28,7 @@ var oreo = module.exports = function oreo(opts, cb) {
   hide(self, '_onReady')
 
   self._tables = []
-  self._opts = Object.assign({}, opts)
+  self._opts = extend({}, opts)
   self._Promise = opts.Promise
   self._promiseResolver = promiseResolver
 

@@ -2,6 +2,7 @@ var oreo = require('..')
 var ok = require('assert').ok
 var fs = require('fs')
 var util = require('util')
+var bluebird = require('bluebird')
 
 var db
 var platforms = [
@@ -12,9 +13,10 @@ var platforms = [
     hosts: ['localhost:5432', 'localhost:5433', 'localhost:5430'],
     name: 'oreo_test',
     debug: false,
-    silent: true
+    silent: true,
     //memoize: 0,
-    //cache: null
+    //cache: null,
+    Promise: global.Promise || bluebird
   },
   {
     driver: 'pg',
@@ -24,7 +26,8 @@ var platforms = [
     name: 'oreo_test',
     debug: false,
     silent: true,
-    memoize: 150
+    memoize: 150,
+    Promise: global.Promise || bluebird
   },
   {
     driver: 'mysql',
@@ -33,7 +36,8 @@ var platforms = [
     hosts: ['localhost'],
     name: 'oreo_test',
     debug: false,
-    silent: true
+    silent: true,
+    Promise: global.Promise || bluebird
   }
 ]
 
