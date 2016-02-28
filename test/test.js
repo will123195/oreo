@@ -1,7 +1,6 @@
 var oreo = require('..')
 var ok = require('assert').ok
 var fs = require('fs')
-var util = require('util')
 var bluebird = require('bluebird')
 
 var db
@@ -109,7 +108,7 @@ platforms.forEach(function(config) {
         ok(!!db.books, 'books not discovered')
         ok(!!db.ratings, 'ratings not discovered')
         done()
-      }).catch(console.log)
+      })
     })
 
     it('should insert - cb', function(done) {
