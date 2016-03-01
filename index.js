@@ -26,7 +26,9 @@ var oreo = module.exports = function oreo(opts, cb) {
   hide(self, '_Promise')
   hide(self, '_promiseResolver')
   hide(self, '_onReady')
+  hide(self, '_isReady')
 
+  self._isReady = false
   self._tables = []
   self._opts = extend({}, opts)
   self._Promise = opts.Promise
@@ -105,6 +107,7 @@ oreo.prototype.discover = function(cb) {
       self._onReady.forEach(function (fn) {
         fn()
       })
+      self._isReady = true
 
       cb(null, self)
     })
@@ -117,6 +120,9 @@ oreo.prototype.discover = function(cb) {
  * Adds a function to the stack to be executed when the database is ready
  */
 oreo.prototype.onReady = function(fn) {
+  if (this._isReady) {
+    return fn()
+  }
   this._onReady = this._onReady || []
   this._onReady.push(fn)
 }
