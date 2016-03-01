@@ -52,7 +52,10 @@ var oreo = module.exports = function oreo(opts, cb) {
     self._opts.memoize = false
   }
 
-  self._query = query(self, self._opts, function() {
+  self._query = query(self, self._opts, function(err) {
+    if (err) {
+      return console.log(err)
+    }
     self._opts.pass = '***************' // obfuscate the password
     self.execute = self._query.execute.bind(self._query)
     self.executeWrite = self._query.executeWrite.bind(self._query)
