@@ -54,7 +54,7 @@ var oreo = module.exports = function oreo(opts, cb) {
 
   self._query = query(self, self._opts, function(err) {
     if (err) {
-      return console.log(err)
+      return cb(err)
     }
     self._opts.pass = '***************' // obfuscate the password
     self.execute = self._query.execute.bind(self._query)
