@@ -619,6 +619,7 @@ platforms.forEach(function(config) {
     // update table with javascript Date value
     // test sql-injection during save - not just select
     // onReady
+    // table.Row
 
     it('should kill the connection pool', function (done) {
       db.end()

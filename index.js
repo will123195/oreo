@@ -1,6 +1,7 @@
 var async = require('async')
 var query = require('./lib/query')
 var Table = require('./lib/table')
+var Row = require('./lib/row')
 var hide = require('./lib/hideProperty')
 var promiseResolver = require('./lib/promiseResolver')
 var extend = require('./lib/extend')
@@ -28,6 +29,7 @@ var oreo = module.exports = function oreo(opts, cb) {
   hide(self, '_onReady')
   hide(self, '_isReady')
 
+  self.Row = Row
   self._isReady = false
   self._tables = []
   self._opts = extend({}, opts)
