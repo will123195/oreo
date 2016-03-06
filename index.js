@@ -28,6 +28,7 @@ var oreo = module.exports = function oreo(opts, cb) {
   hide(self, '_promiseResolver')
   hide(self, '_onReady')
   hide(self, '_isReady')
+  hide(self, '_memo')
 
   self.Row = Row
   self._isReady = false
@@ -35,6 +36,7 @@ var oreo = module.exports = function oreo(opts, cb) {
   self._opts = extend({}, opts)
   self._Promise = opts.Promise
   self._promiseResolver = promiseResolver
+  self._memo = {} // memoized query results
 
   cb = cb || self._promiseResolver()
 
@@ -65,6 +67,19 @@ var oreo = module.exports = function oreo(opts, cb) {
     self.executeWrite = self._query.executeWrite.bind(self._query)
     self.discover(cb)
   })
+
+  // purge memoized values periodically
+  var memoMs = self._opts.memoize
+  if (memoMs) {
+    var intervalMs = self._opts.memoizePurgeInterval || 10000
+    setInterval(function purgeMemo () {
+      Object.keys(self._memo).forEach(function (key) {
+        if (Date.now() - self._memo[key].timestamp > memoMs) {
+          delete self._memo[key]
+        }
+      })
+    }, intervalMs)
+  }
 
   return cb.promise ? cb.promise : this
 }
