@@ -441,8 +441,8 @@ If no callback is provided a Promise is returned.
 <a name="hydrate" />
 ## row.hydrate( foreignKeyName, [cb] )
 
-Gets the record(s) linked with the given foreign key
-- **foreignKeyName** {String|Array} the name of the foreign key constraint
+Gets the record(s) linked with the given foreign key(s)
+- **foreignKeyName** {String|Array} the name of the foreign key constraint(s)
 - **cb** {Function} *(optional)* callback(err, results)
 
 ```js
