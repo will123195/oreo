@@ -205,22 +205,34 @@ platforms.forEach(function(config) {
     })
 
     it('should mget - cb', function(done) {
-      db.authors.mget([1], function(err, authors) {
-        ok(!err, err)
+      db.authors.mget([1, 1984], function(err, authors) {
+        ok(!err, '' + err)
         ok(authors[0].id === 1, 'did not get authors')
-        done()
-      })
-    })
-
-    it('should mget - promise', function(done) {
-      db.authors.mget([1, 1984]).then(function(authors) {
-        ok(authors[0].id === 1, 'did not get first author')
         ok(authors[1].id === 1984, 'did not get second author')
         done()
       })
     })
 
-    it('should get (composite primary key)', function(done) {
+    it('should mget - promise', function(done) {
+      db.authors.mget([1984, 1]).then(function(authors) {
+        ok(authors[0].id === 1984, 'did not get first author')
+        ok(authors[1].id === 1, 'did not get second author')
+        done()
+      })
+    })
+
+    it('should get (composite primary key object)', function(done) {
+      db.ratings.get({
+        author_id: 1,
+        book_id: 1
+      }, function(err, rating) {
+        ok(!err, err)
+        ok(rating.rating === 10, 'did not get rating')
+        done()
+      })
+    })
+
+    it('should get (composite primary key array)', function(done) {
       db.ratings.get([1, 1], function(err, rating) {
         ok(!err, err)
         ok(rating.rating === 10, 'did not get rating')
@@ -566,6 +578,26 @@ platforms.forEach(function(config) {
             ok(book.title === new_title, 'did not save new title')
             ok(book.fromCache, 'did not get value from cache')
             db.books.db._opts.cache = null
+            done()
+          })
+        })
+      })
+    })
+
+    it('should cache mget composite - promise', function(done) {
+      db.authors.db._opts.cache = mockRedis()
+      db.authors.get(1).then(function (author) {
+        var list = [
+          { id: 1984 },
+          { id: 1 },
+          { id: 1408 }
+        ]
+        db.authors.mget(list).then(function(authors) {
+          ok(authors[0].id === list[0].id, 'did not get author 1')
+          ok(authors[1].id === list[1].id, 'did not get author 2')
+          ok(authors[2].id === list[2].id, 'did not get author 3')
+          db.authors.get([1408]).then(function (author) {
+            ok(author.id === 1408, 'did not get author')
             done()
           })
         })
