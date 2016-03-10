@@ -237,11 +237,11 @@ db.execute([
 
 Parameterized query (SQL injection safe):
 ```js
-db.execute([
-  'select id',
-  'from authors',
-  'where name = :name'
-], {
+db.execute(`
+  select id
+  from authors
+  where name = :name
+`, {
   name: 'Jack Kerouac',
 }, function (err, rows) {
   console.log(rows[0].id) // 1
