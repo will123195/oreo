@@ -216,12 +216,12 @@ If no callback is provided a Promise is returned.
 # Db
 
 <a name="execute" />
-## db.execute( sql, [data], [options], [cb] )
+## db.execute( sql, [data], [opts], [cb] )
 
 Executes an arbitrary SQL query.
 - **sql** {String|Array} the SQL statement
 - **data** {Object} *(optional, unless `options` is specified)* parameterized query data
-- **options** {Object} *(optional)* query options
+- **opts** {Object} *(optional)* query options
     - `write` *(optional)* if truthy, forces query to run on master db, otherwise attempts to run on a read-only host
     - `conString` *(optional)* the connection string of the db
 - **cb** {Function} *(optional)* callback(err, results)
@@ -260,12 +260,12 @@ db.execute('select now()')
 ```
 
 <a name="executeWrite" />
-## db.executeWrite( sql, [data], [options], [cb] )
+## db.executeWrite( sql, [data], [opts], [cb] )
 
 Same as `execute()` but executes the query on a writable (master) host.
 
 <a name="onReady" />
-## db.onReady( fn )
+## db.onReady( cb )
 
 Queues a function to be called when oreo's schema detection is complete (i.e. when oreo is initialized).
 
@@ -289,14 +289,14 @@ Ready!
 ```
 
 <a name="end" />
-## db.end()
+## db.end( [cb] )
 
 Close the db connection(s).
 
 # Table
 
 <a name="find" />
-## db.***table***.find( opts, [cb] )
+## db.***table***.find( [opts], [cb] )
 
 Finds one or more rows:
 ```js
@@ -353,7 +353,9 @@ If no callback is provided a Promise is returned.
 
 Finds a row by primary key:
 ```js
-db.authors.get(1, function (err, author) {
+var primaryKey = 1
+// var primaryKey = { id: 1 } // this also works
+db.authors.get(primaryKey, function (err, author) {
   console.log(author) // { id: 1, name: Jack Kerouak, books: [1] }
 })
 ```
@@ -388,13 +390,13 @@ Insert multiple rows into related tables in a single transaction:
 ```js
 db.books.insert({
   title: 'On the Road',
-  author: {
+  author: {  // "author" is the foreign key name
     name: 'Jack Kerouac'
   }
 }, function (err, book) {
   console.log(book)
   // { id: 1, title: On the Road, author_id: 1 }
-  book.hydrate(function (err, book) {
+  book.hydrate('author', function (err, book) {
     console.log(book)
     // { id: 1, title: On the Road, author_id: 1, author: { id: 1, name: Jack Kerouac, books: [1] } }
   })
