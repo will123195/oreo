@@ -28,8 +28,6 @@ npm install pg
 
 # Quick Example
 
-Assuming you have a table `artists`
-
 ```js
 var oreo = require('oreo')
 
@@ -40,6 +38,7 @@ var db = oreo({
   user: 'root',
   pass: ''
 }, function (err) {
+  // Assuming you have a table "artists"
   // Get an artist by primary key
   db.artists.get(id, function (err, artist) {
     console.log(artist)
@@ -189,7 +188,7 @@ Instantiates the `db` object and configures the database connection string(s).
     - password: the password
     - debug: (optional, default `false`) set to `console.log` to see info about running queries
     - memoize: (optional, default `false`) duration in milliseconds to cache rows in process memory. I like setting this to 150ms to prevent fetching a row multiple times simultaneously.
-    - cache: (optional, default `false`) object with `get(key)` and/or `set(key, val)` methods (i.e. redis) to cache full rows (indefinitely). Cached rows are refreshed after `save()`/`insert()`/`update()` to keep the cache fresh. The [Table functions](#table) fetch rows from the cache (and only fetch from sql if the row is not cached). `find()` and `findOne()` only fetch primary keys from sql (typically should be a very fast in-memory index scan), then fetches the actual row from the cache.
+    - cache: (optional, default `false`) object with `get(key)` and/or `set(key, val)` methods (i.e. redis) to cache full rows (indefinitely). Cached rows are recached after `save()`/`insert()`/`update()`/`delete()`. The [Table functions](#table) fetch rows from the cache (and only fetch from sql the rows that are not cached).
     - Promise: (optional, default `global.Promise`) You may plug in your own Promise library that is compatible with native promises, i.e. `Promise: require('bluebird')`. Then a promise will be returned if a callback is not specified.
 - **cb** {Function} *(optional)* callback(err)
 
