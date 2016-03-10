@@ -439,9 +439,12 @@ If no callback is provided a Promise is returned.
 # Row
 
 <a name="hydrate" />
-## row.hydrate( fkConstraintName, [cb] )
+## row.hydrate( foreignKeyName, [cb] )
 
-Gets the linked record (foreign key)
+Gets the record(s) linked with the given foreign key
+- **foreignKeyName** {String|Array} the name of the foreign key constraint
+- **cb** {Function} *(optional)* callback(err, results)
+
 ```js
 db.books.get(1, function (err, book) {
   console.log(book)

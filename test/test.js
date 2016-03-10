@@ -419,7 +419,7 @@ platforms.forEach(function(config) {
         ok(!err, err)
         db.samples.get(data.id, function(err, sample) {
           sample.hydrate('rating', function(err) {
-            ok(sample.rating.rating === 10, 'did not hydrate sample')
+            ok(sample.rating.rating === 10, 'did not hydrate rating')
             done()
           })
         })
@@ -438,6 +438,16 @@ platforms.forEach(function(config) {
           }
         ], function (err) {
           ok(!err, err)
+          ok(sample.book.id === sample.book_id, 'did not hydrate book')
+          ok(sample.rating.author_id === sample.author_id, 'did not hydrate rating')
+          done()
+        })
+      })
+    })
+
+    it('should hydrate multiple in parallel - promise', function(done) {
+      db.samples.get(1).then(function(sample) {
+        sample.hydrate(['book', 'rating']).then(function () {
           ok(sample.book.id === sample.book_id, 'did not hydrate book')
           ok(sample.rating.author_id === sample.author_id, 'did not hydrate rating')
           done()
