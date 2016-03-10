@@ -31,9 +31,9 @@ CREATE TABLE books (
 CREATE TABLE ratings (
   author_id INTEGER,
   book_id INTEGER,
-  rating INTEGER,
+  stars INTEGER,
   CONSTRAINT ratings_pkey PRIMARY KEY(author_id, book_id),
-  CONSTRAINT ratings_rating_key UNIQUE(rating)
+  CONSTRAINT ratings_stars_key UNIQUE(stars)
 );
 
 CREATE TABLE samples (

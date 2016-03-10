@@ -41,6 +41,10 @@ var platforms = [
   }
 ]
 
+var showError = function (err) {
+  console.log(err.stack)
+}
+
 var mockRedis = function() {
   var cache = {}
   return {
@@ -127,10 +131,10 @@ platforms.forEach(function(config) {
           db.ratings.insert({
             author_id: 1,
             book_id: 1,
-            rating: 10
+            stars: 10
           }, function(err, rating) {
             ok(!err, err)
-            ok(rating.rating === 10, 'did not insert rating')
+            ok(rating.stars === 10, 'did not insert rating')
             done()
           })
         })
@@ -150,9 +154,9 @@ platforms.forEach(function(config) {
           db.ratings.insert({
             author_id: 2,
             book_id: 2,
-            rating: 9
+            stars: 9
           }).then(function(rating) {
-            ok(rating.rating === 9, 'did not insert rating')
+            ok(rating.stars === 9, 'did not insert rating')
             done()
           })
         })
@@ -227,7 +231,7 @@ platforms.forEach(function(config) {
         book_id: 1
       }, function(err, rating) {
         ok(!err, err)
-        ok(rating.rating === 10, 'did not get rating')
+        ok(rating.stars === 10, 'did not get rating')
         done()
       })
     })
@@ -235,7 +239,7 @@ platforms.forEach(function(config) {
     it('should get (composite primary key array)', function(done) {
       db.ratings.get([1, 1], function(err, rating) {
         ok(!err, err)
-        ok(rating.rating === 10, 'did not get rating')
+        ok(rating.stars === 10, 'did not get rating')
         done()
       })
     })
@@ -304,7 +308,7 @@ platforms.forEach(function(config) {
     it('should find (composite primary key)', function(done) {
       db.ratings.find({
         where: {
-          rating: 10
+          stars: 10
         }
       }, function(err, ratings) {
         ok(!err, err)
@@ -419,7 +423,7 @@ platforms.forEach(function(config) {
         ok(!err, err)
         db.samples.get(data.id, function(err, sample) {
           sample.hydrate('rating', function(err) {
-            ok(sample.rating.rating === 10, 'did not hydrate rating')
+            ok(sample.rating.stars === 10, 'did not hydrate rating')
             done()
           })
         })
@@ -452,6 +456,40 @@ platforms.forEach(function(config) {
           ok(sample.rating.author_id === sample.author_id, 'did not hydrate rating')
           done()
         })
+      })
+    })
+
+    it('should get and hydrate - promise', function(done) {
+      db.samples.get([1, 1], {
+        hydrate: ['book', 'rating']
+      }).then(function(sample) {
+        ok(!!sample.id, 'sample.id')
+        ok(!!sample.book.id, 'sample.book.id')
+        ok(!!sample.rating.stars, 'sample.rating')
+        done()
+      }).catch(showError)
+    })
+
+    it('should find and hydrate - promise', function(done) {
+      db.books.find({
+        hydrate: 'author'
+      }).then(function(books) {
+        ok(!!books[0].id, 'books[0].id')
+        ok(!!books[0].author.id, 'books[0].author.id')
+        ok(!!books[1].id, 'books[1].id')
+        ok(!!books[1].author.id, 'books[1].author.id')
+        done()
+      })
+    })
+
+    it('should findOne and hydrate - cb', function(done) {
+      db.books.findOne({
+        hydrate: ['author']
+      }, function(err, book) {
+        ok(!err, err)
+        ok(!!book.id, 'book.id')
+        ok(!!book.author.id, 'book.author.id')
+        done()
       })
     })
 
