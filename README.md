@@ -179,18 +179,17 @@ CREATE TABLE books (
 ## oreo( opts, [cb] )
 
 Instantiates the `db` object and configures the database connection string(s).
-
 - **opts** {Object} options
-    - driver: `pg` or `mysql`
-    - hosts: array of possible hosts, each is checked to see if it is online and writable or read-only
-    - name: the database name
-    - user: the username
-    - password: the password
-    - debug: (optional, default `false`) set to `console.log` to see info about running queries
-    - memoize: (optional, default `false`) duration in milliseconds to cache rows in process memory. I like setting this to 150ms to prevent fetching a row multiple times simultaneously.
-    - cache: (optional, default `false`) object with `get(key)` and/or `set(key, val)` methods (i.e. redis) to cache full rows (indefinitely). Cached rows are recached after `save()`/`insert()`/`update()`/`delete()`. The [Table functions](#table) fetch rows from the cache (and only fetch from sql the rows that are not cached).
-    - Promise: (optional, default `global.Promise`) You may plug in your own Promise library that is compatible with native promises, i.e. `Promise: require('bluebird')`. Then a promise will be returned if a callback is not specified.
-- **cb** {Function} *(optional)* callback(err)
+    - **driver** `pg` or `mysql`
+    - **hosts** array of possible hosts, each is checked to see if it is online and writable or read-only
+    - **name** the database name
+    - **user** the username
+    - **password** the password
+    - **debug** *(optional, default `false`)* set to `console.log` to see info about running queries
+    - **memoize** *(optional, default `false`)* duration in milliseconds to cache rows in process memory. I like setting this to 150ms to prevent fetching a row multiple times simultaneously.
+    - **cache** *(optional, default `false`)* object with `get(key)` and/or `set(key, val)` methods (i.e. redis) to cache full rows (indefinitely). Cached rows are recached after `save()`/`insert()`/`update()`/`delete()`. The [Table functions](#table) fetch rows from the cache (and only fetch from sql the rows that are not cached).
+    - **Promise** *(optional, default `global.Promise`)* You may plug in your own Promise library that is compatible with native promises, i.e. `Promise: require('bluebird')`. Then a promise will be returned if a callback is not specified.
+- **cb** {Function} *(optional)* callback(err) If *cb* is not provided, a Promise is returned.
 
 ```js
 var oreo = require('oreo')
@@ -211,8 +210,6 @@ var db = oreo({
 })
 ```
 
-If no callback is provided a Promise is returned.
-
 # Db
 
 <a name="execute" />
@@ -222,13 +219,13 @@ Executes an arbitrary SQL query.
 - **sql** {String|Array} the SQL statement
 - **data** {Object} *(optional, unless `options` is specified)* parameterized query data
 - **opts** {Object} *(optional)* query options
-    - `write` *(optional)* if truthy, forces query to run on master db, otherwise attempts to run on a read-only host
-    - `conString` *(optional)* the connection string of the db
-- **cb** {Function} *(optional)* callback(err, results)
+    - **write** {Boolean} if truthy, forces query to run on master db, otherwise attempts to run on a read-only host
+    - **conString** {String} the connection string of the db
+- **cb** {Function} *(optional)* callback(err, rows) If *cb* is not provided, a Promise is returned.
 
 ```js
 db.execute([
-  'select now()', // arrays can be used for multi-line convenience
+  'select now()', // arrays can be used for es5 multi-line convenience
   'as now'
 ], function (err, rs) {
   console.log(rs[0]) // 2014-06-24 21:03:08.652861-04
@@ -268,6 +265,7 @@ Same as `execute()` but executes the query on a writable (master) host.
 ## db.onReady( cb )
 
 Queues a function to be called when oreo's schema detection is complete (i.e. when oreo is initialized).
+- **cb** {Function} callback(err) If *cb* is not provided, a Promise is returned.
 
 ```js
 var db = oreo(config, function (err) {
@@ -280,12 +278,13 @@ db.onReady(function () {
 db.onReady(function () {
   console.log('onReady #2')
 })
-```
+
+/*
 Output:
-```
 onReady #1
 onReady #2
 Ready!
+*/
 ```
 
 <a name="end" />
@@ -298,7 +297,15 @@ Close the db connection(s).
 <a name="find" />
 ## db.***table***.find( [opts], [cb] )
 
-Finds one or more rows:
+Finds one or more rows.
+- **opts** {Object} *(optional)* options
+    - **where** {String|Array|Object} the where clause criteria
+    - **order** {String} i.e. `last_name ASC, age DESC`
+    - **limit** {Number}
+    - **offset** {Number}
+    - **hydrate** {String|Array} hydrates the specified foreign keys
+- **cb** {Function} *(optional)* callback(err, rows) If *cb* is not provided, a Promise is returned.
+
 ```js
 db.authors.find({
   where: ["name ilike 'Jack%'"],
@@ -321,7 +328,7 @@ The `where` option has several valid formats:
     ```js
     where: ["field = 'abc'", "field2 > 1"]
     ```
-- {Object} recommended, blocks SQL injection
+- {Object}
 
     ```js
     where: {
@@ -330,12 +337,13 @@ The `where` option has several valid formats:
     }
     ```
 
-If no callback is provided a Promise is returned.
-
 <a name="findOne" />
 ## db.***table***.findOne( opts, [cb] )
 
-Finds exactly one row:
+Finds exactly one row.
+- **opts** {Object} same options as `find()`
+- **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.
+
 ```js
 db.authors.findOne({
   where: ["name ilike 'Jack%'"],
@@ -346,12 +354,15 @@ db.authors.findOne({
 })
 ```
 
-If no callback is provided a Promise is returned.
-
 <a name="get" />
-## db.***table***.get( primaryKey, [cb] )
+## db.***table***.get( primaryKey, [opts], [cb] )
 
-Finds a row by primary key:
+Finds a row by primary key.
+- **primaryKey** {String|Number|Object} the primary key of the row to get
+- **opts** {Object} *(optional)* options
+    - **hydrate** {String|Array} hydrates the specified foreign keys
+- **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.
+
 ```js
 var primaryKey = 1
 // var primaryKey = { id: 1 } // this also works
@@ -370,12 +381,13 @@ db.parts.get({
 })
 ```
 
-If no callback is provided a Promise is returned.
-
 <a name="insert" />
 ## db.***table***.insert( data, [cb] )
 
 Inserts a new row.
+- **data** {Object} the data to insert into the db
+- **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.
+
 ```js
 db.books.insert({
   title: 'On the Road',
@@ -403,12 +415,15 @@ db.books.insert({
 })
 ```
 
-If no callback is provided a Promise is returned.
-
 <a name="mget" />
-## db.***table***.mget( primaryKeys, [cb] )
+## db.***table***.mget( primaryKeys, [opts], [cb] )
 
-Gets many rows from the database by primary key:
+Gets many rows from the database by primary key.
+- **primaryKeys** {Array} the primary keys of the rows to get
+- **opts** {Object} *(optional)* options
+    - **hydrate** {String|Array} hydrates the specified foreign keys
+- **cb** {Function} *(optional)* callback(err, rows) If *cb* is not provided, a Promise is returned.
+
 ```js
 var bookIds = [1]
 db.books.mget(bookIds, function (err, books) {
@@ -417,12 +432,13 @@ db.books.mget(bookIds, function (err, books) {
 })
 ```
 
-If no callback is provided a Promise is returned.
-
 <a name="table_save" />
 ## db.***table***.save( data, [cb] )
 
 Inserts or updates depending on whether the primary key exists in the db.
+- **data** {Object} the data to save
+- **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.
+
 ```js
 var formPOST = {
   id: 1,
@@ -434,16 +450,14 @@ db.books.save(formPOST, function (err, book) {
 })
 ```
 
-If no callback is provided a Promise is returned.
-
 # Row
 
 <a name="hydrate" />
 ## row.hydrate( foreignKeyName, [cb] )
 
-Gets the record(s) linked with the given foreign key(s)
+Gets the record(s) linked with the specified foreign key(s)
 - **foreignKeyName** {String|Array} the name of the foreign key constraint(s)
-- **cb** {Function} *(optional)* callback(err, results)
+- **cb** {Function} *(optional)* callback(err) If *cb* is not provided, a Promise is returned.
 
 ```js
 db.books.get(1, function (err, book) {
@@ -461,12 +475,12 @@ db.books.get(1, function (err, book) {
 })
 ```
 
-If no callback is provided a Promise is returned.
-
 <a name="save" />
 ## row.save( [cb] )
 
-Saves the modified property values to the database (recursively):
+Saves the modified property values to the database (recursively).
+- **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.
+
 ```js
 db.books.get(1, function (err, book) {
   console.log(book)
@@ -479,12 +493,12 @@ db.books.get(1, function (err, book) {
 })
 ```
 
-If no callback is provided a Promise is returned.
-
 <a name="set" />
 ## row.set( data )
 
-Sets multiple property values but does not save yet:
+Modifies multiple property values but does NOT save to the db.
+- **data** {Object} the data to modify
+
 ```js
 db.books.get(1, function (err, book) {
   console.log(book)
@@ -500,7 +514,10 @@ db.books.get(1, function (err, book) {
 <a name="update" />
 ## row.update( data, [cb] )
 
-Update an existing row:
+Update an existing row. A convenience method for `set()` then `save()`.
+- **data** {Object} the data to save
+- **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.
+
 ```js
 book.update({
   title: 'New Title'
@@ -509,8 +526,6 @@ book.update({
   // { id: 1, title: New Title, author_id: 1 }
 })
 ```
-
-If no callback is provided a Promise is returned.
 
 ## Known Issues
 
