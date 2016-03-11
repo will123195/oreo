@@ -283,9 +283,10 @@ platforms.forEach(function(config) {
     //
     // it('should find (where parameterized array)', function(done) {
     //   db.authors.find({
-    //     where: ["name = :name"]
-    //   }, {
-    //     name: 'Jack Kerouac'
+    //     where: ['name = :name']
+    //     params: {
+    //       name: 'Jack Kerouac'
+    //     }
     //   }, function(err, authors) {
     //     ok(!err, err)
     //     ok(authors[0].id === 1, 'did not find author')
@@ -427,6 +428,64 @@ platforms.forEach(function(config) {
             done()
           })
         })
+      })
+    })
+
+    it('should hydrate 1-to-m - promise', function(done) {
+      db.authors.get(1).then(function(author) {
+        author.hydrate('author:books').then(function() {
+          ok(author['author:books'].length === 1, 'did not hydrate author:books')
+          ok(!!author['author:books'][0].title, 'author:books[0].title')
+          done()
+        })
+      })
+    })
+
+    it('should hydrate 1-to-m shorthand - promise', function(done) {
+      db.authors.get(1).then(function(author) {
+        return author.hydrate('books').then(function() {
+          ok(!!author.books[0].title, 'author.books[0].title')
+          done()
+        })
+      }).catch(showError)
+    })
+
+    it('should not hydrate ambiguous 1-to-m - promise', function(done) {
+      db.battles.insert({
+        author1_id: 1,
+        author2_id: 2
+      }).then(function (battle) {
+        return battle.hydrate('a1').then(function () {
+          var author = battle.a1
+          return author.hydrate('battles')
+        })
+      }).catch(function (err) {
+        ok(!!err, 'should have ambiguous hydration error')
+        done()
+      })
+    })
+
+    it('should hydrate non-ambiguous 1-to-m - promise', function(done) {
+      db.battles.insert({
+        author1_id: 2,
+        author2_id: 1
+      }).then(function (battle) {
+        db.authors.get(1).then(function (author) {
+          author.hydrate(['a1:battles', 'a2:battles']).then(function () {
+            ok(!!author['a1:battles'][0].id, 'a1.battles.id')
+            ok(!!author['a2:battles'][0].id, 'a2.battles.id')
+            done()
+          })
+        })
+      })
+    })
+
+    it('should not hydrate wrong 1-to-m - promise', function(done) {
+      db.books.get(1).then(function(book) {
+        return book.hydrate('author:books')
+      }).catch(function (err) {
+        ok(!!err, 'should have error')
+        done()
       })
     })
 

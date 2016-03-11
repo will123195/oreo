@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS battles CASCADE;
 DROP TABLE IF EXISTS samples CASCADE;
 DROP TABLE IF EXISTS books CASCADE;
 DROP TABLE IF EXISTS authors CASCADE;
@@ -44,4 +45,13 @@ CREATE TABLE samples (
   CONSTRAINT samples_pkey PRIMARY KEY(id),
   CONSTRAINT book FOREIGN KEY (book_id) REFERENCES books(id),
   CONSTRAINT rating FOREIGN KEY (author_id, book_id) REFERENCES ratings(author_id, book_id)
+);
+
+CREATE TABLE battles (
+  id INTEGER AUTO_INCREMENT,
+  author1_id INTEGER,
+  author2_id INTEGER,
+  CONSTRAINT battles_pkey PRIMARY KEY(id),
+  CONSTRAINT a1 FOREIGN KEY (author1_id) REFERENCES authors(id),
+  CONSTRAINT a2 FOREIGN KEY (author2_id) REFERENCES authors(id)
 );
