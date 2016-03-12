@@ -777,11 +777,29 @@ platforms.forEach(function(config) {
       })
     })
 
-    // TODO:
-    // should fail saving author.books[Book] since books[Int] column exists
-    // should fail saving a 1-to-m field that is not an array
-    // should fail saving a 1-to-m row that attempts to modify a foreign key value
-    // should save shorthand 1-to-m (insert + insert)
+    it('should not save shorthand 1-to-m w/ column name conflict', function(done) {
+      var newAuthor = {
+        name: 'Jimbo Jimson',
+        books: [
+          { title: 'My First Book' }
+        ]
+      }
+      db.authors.save(newAuthor).catch(function (err) {
+        ok(!!err, 'should have error')
+        done()
+      })
+    })
+
+    it('should not save a 1-to-m field that is not an array', function(done) {
+      var newAuthor = {
+        name: 'Jimbo Jimson',
+        'author:books': { title: 'My First Book' }
+      }
+      db.authors.save(newAuthor).catch(function (err) {
+        ok(!!err, 'should have error')
+        done()
+      })
+    })
 
     it('should save 1-to-m (insert + insert)', function(done) {
       var newAuthor = {
@@ -808,8 +826,34 @@ platforms.forEach(function(config) {
       })
     })
 
+    it('should save shorthand 1-to-m (insert + insert)', function(done) {
+      var newBook = {
+        title: 'A Great Book',
+        samples: [
+          { description: 'Something!' },
+          { description: 'Something else!' }
+        ]
+      }
+      db.books.save(newBook, function(err, book) {
+        ok(!err, err)
+        ok(!!book.id, 'did not insert book')
+        ok(book.title === newBook.title, 'wrong book.title')
+        var property = 'samples'
+        book.hydrate(property, function(err) {
+          ok(!err, err)
+          ok(!!book[property], 'did not hydrate samples')
+          ok(book[property].length === newBook[property].length, 'wrong number of samples')
+          var sample = book[property][0]
+          ok(sample.book_id === book.id, 'did not insert sample')
+          ok(sample.description === newBook[property][0].description, 'wrong description')
+          done()
+        })
+      })
+    })
+
     // TODO:
     // save rows of the same table in parallel
+    // should fail saving a 1-to-m row that attempts to modify a foreign key value
     // should not allow updating foreign key value(s) in a 1-to-1 nested save
     // more nested save tests
     // composite primary key insert / update
