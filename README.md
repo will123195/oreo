@@ -5,11 +5,10 @@
 
 # Features
 
-- Simple syntax for reading/writing to db
-- Detects relationships (primary and foreign keys)
-- Saves nested objects in a single transaction
-- Has just 1 dependency (async)
-- Detects master/slave hosts
+- Simple syntax for CRUD operations
+- Detects relationships (primary keys and foreign keys)
+- Read/write multi-table nested objects in a single transaction
+- Detects primary/read-only hosts
 - Use callbacks or plug in your own Promise library
 - Optional row memoization and row caching
 
@@ -97,53 +96,51 @@ var db = oreo({
   memoize: 150, // optional duration in ms to memoize rows
   cache: redisClient, // optional
   Promise: Promise // optional
-}, runExampleQueries)
+}).then(runExampleQueries)
 
-function runExampleQueries(err) {
-
-  // register a method to bind to all `Row` instances of `books`
-  db.books._methods.getTitle = function () {
-    return this.title
-  }
+function runExampleQueries () {
 
   // get one book (by primary key)
-  db.books.get(1, function (err, book) {
+  db.books.get(1).then(function (book) {
     // book.title
-    // book.getTitle() -- see above we registered this method
   })
 
-  // Insert a new book and its author
+  // Insert a new book, its author and some reviews (in a single transaction)
   db.books.insert({
     title: 'Fear and Loathing in Las Vegas',
     author: {
       name: 'Hunter S.Thompson'
-    }
-  }, function (err, book) {
+    },
+    reviews: [ // shorthand for 'book:reviews'
+      { stars: 5, body: 'Psychadelic!'},
+      { stars: 4, body: 'Bizarre, unpredictable yet strangely alluring.'},
+    ]
+  }).then(function (book) {
     console.log(book) // { id: 1, title: Fear and Loathing in Las Vegas, author_id: 1 }
 
     // Get a linked object
-    book.hydrate('author', function (err, author) {
+    book.hydrate('author').then(function () {
       console.log(book.author) // { id: 1, name: Hunter S. Thompson, books: [] }
+    })
 
-      // Get multiple books using array of primary keys
-      db.books.mget(author.books, function (err, books) {
-        console.log(books)
-      })
+    // Get 1-to-many linked objects
+    book.hydrate('reviews').then(function () {
+      console.log(book.reviews) // array of Review rows
     })
 
     // Find authors by criteria
     db.authors.find({
       where: {
-        author_id: 1
+        name: 'Hunter S. Thompson'
       }
-    }, function (err, authors) {
+    }).then(function (authors) {
       console.log(authors) // [{ id: 1, name: Hunter S. Thompson, books: [] }]
     })
 
     // Update the book
     book.update({
       title: 'The Rum Diary'
-    }, function (err, book) {
+    }).then(function (book) {
       console.log(book) // { id: 1, title: The Rum Diary, author_id: 1 }
     })
   })
@@ -165,6 +162,15 @@ CREATE TABLE books (
   author_id INTEGER,
   CONSTRAINT book_pkey PRIMARY KEY(id),
   CONSTRAINT author FOREIGN KEY (author_id) REFERENCES authors(id)
+);
+
+CREATE TABLE reviews (
+  id SERIAL,
+  book_id INTEGER,
+  stars INTEGER,
+  body VARCHAR,
+  CONSTRAINT review_pkey PRIMARY KEY(id),
+  CONSTRAINT book FOREIGN KEY (book_id) REFERENCES book(id)
 );
 ```
 **Pro Tip:** [Create a trigger](https://github.com/will123195/oreo/wiki/Trigger-to-populate-array) to auto-populate `author.books[]`.

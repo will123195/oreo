@@ -14,8 +14,6 @@ var platforms = [
     name: 'oreo_test',
     debug: false,
     silent: true,
-    //memoize: 0,
-    //cache: null,
     Promise: global.Promise || bluebird
   },
   {
@@ -279,7 +277,7 @@ platforms.forEach(function(config) {
       })
     })
 
-    // TODO parameterized where arrays
+    // TODO parameterized where arrays (find, mget)
     //
     // it('should find (where parameterized array)', function(done) {
     //   db.authors.find({
@@ -442,9 +440,9 @@ platforms.forEach(function(config) {
     })
 
     it('should hydrate 1-to-m shorthand - promise', function(done) {
-      db.authors.get(1).then(function(author) {
-        return author.hydrate('books').then(function() {
-          ok(!!author.books[0].title, 'author.books[0].title')
+      db.books.get(1).then(function(book) {
+        return book.hydrate('samples').then(function() {
+          ok(!!book.samples[0].description, 'book.samples[0].description')
           done()
         })
       }).catch(showError)
@@ -483,6 +481,15 @@ platforms.forEach(function(config) {
     it('should not hydrate wrong 1-to-m - promise', function(done) {
       db.books.get(1).then(function(book) {
         return book.hydrate('author:books')
+      }).catch(function (err) {
+        ok(!!err, 'should have error')
+        done()
+      })
+    })
+
+    it('should not hydrate shorthand 1-to-m conflicting column name - promise', function(done) {
+      db.authors.get(1).then(function(author) {
+        return author.hydrate('books')
       }).catch(function (err) {
         ok(!!err, 'should have error')
         done()
@@ -771,6 +778,39 @@ platforms.forEach(function(config) {
     })
 
     // TODO:
+    // should fail saving author.books[Book] since books[Int] column exists
+    // should fail saving a 1-to-m field that is not an array
+    // should fail saving a 1-to-m row that attempts to modify a foreign key value
+    // should save shorthand 1-to-m (insert + insert)
+
+    it('should save 1-to-m (insert + insert)', function(done) {
+      var newAuthor = {
+        name: 'Jimbo Jimson',
+        'author:books': [
+          { title: 'My First Book' },
+          { title: 'My Second Book' }
+        ]
+      }
+      db.authors.save(newAuthor, function(err, author) {
+        ok(!err, err)
+        ok(!!author.id, 'did not insert author')
+        ok(author.name === newAuthor.name, 'wrong author.name')
+        var property = 'author:books'
+        author.hydrate(property, function(err) {
+          ok(!err, err)
+          ok(!!author[property], 'did not hydrate books')
+          ok(author[property].length === newAuthor[property].length, 'wrong number of books')
+          var book = author[property][0]
+          ok(book.author_id === author.id, 'did not insert book')
+          ok(book.title === newAuthor[property][0].title, 'wrong title')
+          done()
+        })
+      })
+    })
+
+    // TODO:
+    // save rows of the same table in parallel
+    // should not allow updating foreign key value(s) in a 1-to-1 nested save
     // more nested save tests
     // composite primary key insert / update
     // primary key id is specified for insert
@@ -779,6 +819,7 @@ platforms.forEach(function(config) {
     // test sql-injection during save - not just select
     // onReady
     // table.Row
+    // failed transactions behave as expected saving 1-to-1 and 1-to-m
 
     it('should kill the connection pool', function (done) {
       db.end()
