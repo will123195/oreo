@@ -278,20 +278,20 @@ platforms.forEach(function(config) {
       })
     })
 
-    // TODO parameterized where arrays (find, mget)
-    //
-    // it('should find (where parameterized array)', function(done) {
-    //   db.authors.find({
-    //     where: ['name = :name']
-    //     params: {
-    //       name: 'Jack Kerouac'
-    //     }
-    //   }, function(err, authors) {
-    //     ok(!err, err)
-    //     ok(authors[0].id === 1, 'did not find author')
-    //     done()
-    //   })
-    // })
+    it('should find (where parameterized array)', function(done) {
+      var opts = {
+        where: ['name = :name'],
+        params: {
+          name: 'Jack Kerouac'
+        }
+      }
+      db.authors.find(opts, function(err, authors) {
+        ok(!err, err)
+        ok(authors[0].id === 1, 'did not find author')
+        ok(authors[0].name === opts.params.name, 'did not find author name')
+        done()
+      })
+    })
 
     it('should find (where object)', function(done) {
       db.authors.find({
