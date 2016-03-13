@@ -316,14 +316,14 @@ Ready!
 <a name="end" />
 ## db.end( [cb] )
 
-Close the db connection(s).
+Closes the db connection(s).
 
 # Table
 
 <a name="find" />
 ## db.***table***.find( [opts], [cb] )
 
-Finds one or more rows.
+Finds multiple rows.
 
 - **opts** {Object} *(optional)* options
     - **where** {String|Array|Object} the where clause criteria
@@ -353,14 +353,17 @@ The `where` option has several valid formats:
 - {Array}
 
     ```js
-    where: ["field = 'abc'", "field2 > 1"]
+    where: [
+      "field = 'abc'",
+      "field2 > 1"
+    ]
     ```
 - {Object}
 
     ```js
     where: {
       field: 'abc',
-      field2: {'>': 1}
+      field2: { $gt: 1 }
     }
     ```
 
@@ -385,7 +388,7 @@ db.authors.findOne({
 <a name="get" />
 ## db.***table***.get( primaryKey, [opts], [cb] )
 
-Finds a row by primary key.
+Gets a row by primary key.
 
 - **primaryKey** {String|Number|Object} the primary key of the row to get
 - **opts** {Object} *(optional)* options
@@ -393,8 +396,7 @@ Finds a row by primary key.
 - **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.
 
 ```js
-var primaryKey = 1
-// var primaryKey = { id: 1 } // this also works
+var primaryKey = 1 // var primaryKey = { id: 1 } // this also works
 db.authors.get(primaryKey, function (err, author) {
   console.log(author) // { id: 1, name: Jack Kerouak, books: [1] }
 })
@@ -402,11 +404,12 @@ db.authors.get(primaryKey, function (err, author) {
 
 Multi-column (composite) primary key:
 ```js
-db.parts.get({
+var primaryKey = {
   company: 'Cogswell Cogs',
   part_no: 'A-12345'
-}, function (err, part) {
-
+}
+db.parts.get(primaryKey, function (err, part) {
+  console.log(part) // { company: Cogswell Cogs, part_no: A-12345, price: 9.99, in_stock: true }
 })
 ```
 
@@ -432,10 +435,10 @@ Insert multiple rows into related tables in a single transaction:
 ```js
 db.books.insert({
   title: 'On the Road',
-  author: {  // "author" is the foreign key name
+  author: {  // "author" is the foreign key name (1-to-1)
     name: 'Jack Kerouac'
   },
-  reviews: [ // shorthand for 'book:reviews' <foreignKeyName>:<tableName>
+  reviews: [ // shorthand for 'book:reviews' <foreignKeyName>:<tableName> (1-to-many)
     { stars: 5, body: 'Psychadelic!'},
     { stars: 4, body: 'Bizarre, unpredictable yet strangely alluring.'}
   ]
@@ -445,10 +448,12 @@ db.books.insert({
 })
 ```
 
+See also: [`hydrate`](#hydrate)
+
 <a name="mget" />
 ## db.***table***.mget( primaryKeys, [opts], [cb] )
 
-Gets many rows from the database by primary key.
+Gets many rows by primary key.
 
 - **primaryKeys** {Array} the primary keys of the rows to get
 - **opts** {Object} *(optional)* options
@@ -468,7 +473,7 @@ db.books.mget(bookIds, function (err, books) {
 
 Inserts or updates depending on whether the primary key exists in the db.
 
-- **data** {Object} the data to save
+- **data** {Object} the data to save to the db
 - **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.
 
 ```js
@@ -487,7 +492,7 @@ db.books.save(formPOST, function (err, book) {
 <a name="hydrate" />
 ## row.hydrate( propertyName, [cb] )
 
-Gets the record(s) linked with the specified foreign key(s) and/or foreign table(s).
+Hydrates the row(s) linked with the specified foreign key(s) and/or foreign table(s).
 
 - **propertyName** {String|Array} the name of the hydratable property to fetch and attach to this row. There are two types of hydratable property names:
     - 1-to-1 foreign key constraint name
@@ -513,7 +518,9 @@ db.books.get(1, function (err, book) {
 })
 ```
 
-When hydrating a 1-to-1 row, the *propertyName* is the name of your foreign key constraint. For example, a book has one author, so we have a table `books` with a column `author_id` which has a foreign key constraint named `author` which links to `author.id`.
+When hydrating a 1-to-1 row, the **propertyName** is the name of the foreign key constraint.
+
+For example, a book has one author, so we have a table `books` with a column `author_id` which has a foreign key constraint named `author` which links to `author.id`.
 
 ```js
 // 1-to-1
@@ -523,7 +530,7 @@ book.hydrate('author', function (err) {
 })
 ```
 
-When hydrating 1-to-many rows, it is recommended to specify the fully qualified hydratable *propertyName* formatted as `foreignKeyName:tableName`. However, for convenience, if the foreign table has only one foreign key that references this table, you may omit `foreignKeyName:` and simply use `tableName` shorthand notation.
+When hydrating 1-to-many rows, it is recommended to specify the fully qualified hydratable **propertyName** formatted as `foreignKeyName:tableName`. However, for convenience, if the foreign table has only one foreign key that references this table, you may omit `foreignKeyName:` and simply use `tableName` shorthand notation.
 
 For example, a book has many reviews, so we have a table `reviews` with a column `book_id` which has a foreign key constraint named `book` which links to `book.id`.
 
@@ -559,7 +566,7 @@ book.hydrate(['author', 'reviews'], function (err) {
 <a name="save" />
 ## row.save( [cb] )
 
-Saves the modified property values to the database (recursively).
+Saves the modified property values to the database (and saves linked rows recursively).
 
 - **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.
 
@@ -590,14 +597,16 @@ db.books.get(1, function (err, book) {
     title: 'New Title',
     author_id: 2
   })
-  book.save()
+  book.save(function (err, book) {
+
+  })
 })
 ```
 
 <a name="update" />
 ## row.update( data, [cb] )
 
-Update an existing row. A convenience method for `set()` then `save()`.
+Updates an existing row. A convenience method for `set()` then `save()`.
 
 - **data** {Object} the data to save
 - **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.

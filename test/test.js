@@ -864,6 +864,7 @@ platforms.forEach(function(config) {
     // onReady
     // table.Row
     // failed transactions behave as expected saving 1-to-1 and 1-to-m
+    // 1-to-1 and 1-to-m unmodified values should not be updated
 
     it('should kill the connection pool', function (done) {
       db.end()
