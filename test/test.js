@@ -814,7 +814,7 @@ platforms.forEach(function(config) {
         ok(!!author.id, 'did not insert author')
         ok(author.name === newAuthor.name, 'wrong author.name')
         var property = 'author:books'
-        author.hydrate(property, function(err) {
+        author.hydrate([property], function(err) {
           ok(!err, err)
           ok(!!author[property], 'did not hydrate books')
           ok(author[property].length === newAuthor[property].length, 'wrong number of books')

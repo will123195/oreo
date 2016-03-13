@@ -95,15 +95,10 @@ var db = oreo({
   debug: console.log,
   memoize: 150, // optional duration in ms to memoize rows
   cache: redisClient, // optional
-  Promise: Promise // optional
+  Promise: Promise // optional, default: global.Promise
 }).then(runExampleQueries)
 
 function runExampleQueries () {
-
-  // get one book (by primary key)
-  db.books.get(1).then(function (book) {
-    // book.title
-  })
 
   // Insert a new book, its author and some reviews (in a single transaction)
   db.books.insert({
@@ -113,36 +108,59 @@ function runExampleQueries () {
     },
     reviews: [ // shorthand for 'book:reviews'
       { stars: 5, body: 'Psychadelic!'},
-      { stars: 4, body: 'Bizarre, unpredictable yet strangely alluring.'},
+      { stars: 4, body: 'Bizarre, unpredictable yet strangely alluring.'}
     ]
   }).then(function (book) {
     console.log(book) // { id: 1, title: Fear and Loathing in Las Vegas, author_id: 1 }
 
-    // Get a linked object
+    // Hydrate a book's author (1-to-1 linked row)
     book.hydrate('author').then(function () {
-      console.log(book.author) // { id: 1, name: Hunter S. Thompson, books: [] }
+      console.log(book.author) // { id: 1, name: Hunter S. Thompson }
     })
 
-    // Get 1-to-many linked objects
+    // Hydrate a book's reviews (1-to-many linked rows)
     book.hydrate('reviews').then(function () {
-      console.log(book.reviews) // array of Review rows
+      console.log(book.reviews) // array
     })
 
-    // Find authors by criteria
-    db.authors.find({
-      where: {
-        name: 'Hunter S. Thompson'
-      }
-    }).then(function (authors) {
-      console.log(authors) // [{ id: 1, name: Hunter S. Thompson, books: [] }]
-    })
-
-    // Update the book
+    // Update a book
     book.update({
       title: 'The Rum Diary'
     }).then(function (book) {
       console.log(book) // { id: 1, title: The Rum Diary, author_id: 1 }
     })
+  })
+
+  // Get an author by primary key
+  db.authors.get(1).then(function (author) {
+    console.log(author) // { id: 1, name: Hunter S. Thompson }
+  })
+
+  // Get multiple authors by primary key
+  db.authors.mget([1]).then(function (authors) {
+    console.log(authors) // [ { id: 1, name: Hunter S. Thompson } ]
+  })
+
+  // Find authors
+  db.authors.find({
+    where: {
+      name: 'Hunter S. Thompson'
+    },
+    order: 'name asc',
+    limit: 10,
+    offset: 0
+    }
+  }).then(function (authors) {
+    console.log(authors) // [ { id: 1, name: Hunter S. Thompson } ]
+  })
+
+  // Find one author
+  db.authors.findOne({
+    where: {
+      name: 'Hunter %'
+    }
+  }).then(function (author) {
+    console.log(author) // { id: 1, name: Hunter S. Thompson }
   })
 }
 ```
@@ -152,7 +170,6 @@ Example database schema:
 CREATE TABLE authors (
   id SERIAL,
   name VARCHAR,
-  books INTEGER[],
   CONSTRAINT author_pkey PRIMARY KEY(id)
 );
 
@@ -185,6 +202,7 @@ CREATE TABLE reviews (
 ## oreo( opts, [cb] )
 
 Instantiates the `db` object and configures the database connection string(s).
+
 - **opts** {Object} options
     - **driver** `pg` or `mysql`
     - **hosts** array of possible hosts, each is checked to see if it is online and writable or read-only
@@ -192,7 +210,7 @@ Instantiates the `db` object and configures the database connection string(s).
     - **user** the username
     - **password** the password
     - **debug** *(optional, default `false`)* set to `console.log` to see info about running queries
-    - **memoize** *(optional, default `false`)* duration in milliseconds to cache rows in process memory. I like setting this to 150ms to prevent fetching a row multiple times simultaneously.
+    - **memoize** *(optional, default `false`)* duration in milliseconds to cache rows in process memory. Setting this to `150` is generally a no-brainer to prevent redundant queries.
     - **cache** *(optional, default `false`)* object with `get(key)` and/or `set(key, val)` methods (i.e. redis) to cache full rows (indefinitely). Cached rows are recached after `save()`/`insert()`/`update()`/`delete()`. The [Table functions](#table) fetch rows from the cache (and only fetch from sql the rows that are not cached).
     - **Promise** *(optional, default `global.Promise`)* You may plug in your own Promise library that is compatible with native promises, i.e. `Promise: require('bluebird')`. Then a promise will be returned if a callback is not specified.
 - **cb** {Function} *(optional)* callback(err) If *cb* is not provided, a Promise is returned.
@@ -222,6 +240,7 @@ var db = oreo({
 ## db.execute( sql, [data], [opts], [cb] )
 
 Executes an arbitrary SQL query.
+
 - **sql** {String|Array} the SQL statement
 - **data** {Object} *(optional, unless `options` is specified)* parameterized query data
 - **opts** {Object} *(optional)* query options
@@ -265,12 +284,13 @@ db.execute('select now()')
 <a name="executeWrite" />
 ## db.executeWrite( sql, [data], [opts], [cb] )
 
-Same as `execute()` but executes the query on a writable (master) host.
+Same as [`execute`](#execute) but executes the query on a writable (primary) host.
 
 <a name="onReady" />
 ## db.onReady( cb )
 
 Queues a function to be called when oreo's schema detection is complete (i.e. when oreo is initialized).
+
 - **cb** {Function} callback(err) If *cb* is not provided, a Promise is returned.
 
 ```js
@@ -304,12 +324,13 @@ Close the db connection(s).
 ## db.***table***.find( [opts], [cb] )
 
 Finds one or more rows.
+
 - **opts** {Object} *(optional)* options
     - **where** {String|Array|Object} the where clause criteria
     - **order** {String} i.e. `last_name ASC, age DESC`
     - **limit** {Number}
     - **offset** {Number}
-    - **hydrate** {String|Array} hydrates the specified foreign keys
+    - **hydrate** {String|Array} hydrates the specified foreign keys (see [`hydrate`](#hydrate))
 - **cb** {Function} *(optional)* callback(err, rows) If *cb* is not provided, a Promise is returned.
 
 ```js
@@ -347,7 +368,8 @@ The `where` option has several valid formats:
 ## db.***table***.findOne( opts, [cb] )
 
 Finds exactly one row.
-- **opts** {Object} same options as `find()`
+
+- **opts** {Object} same options as [`find`](#find)
 - **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.
 
 ```js
@@ -364,9 +386,10 @@ db.authors.findOne({
 ## db.***table***.get( primaryKey, [opts], [cb] )
 
 Finds a row by primary key.
+
 - **primaryKey** {String|Number|Object} the primary key of the row to get
 - **opts** {Object} *(optional)* options
-    - **hydrate** {String|Array} hydrates the specified foreign keys
+    - **hydrate** {String|Array} hydrates the specified foreign keys (see [`hydrate`](#hydrate))
 - **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.
 
 ```js
@@ -391,6 +414,7 @@ db.parts.get({
 ## db.***table***.insert( data, [cb] )
 
 Inserts a new row.
+
 - **data** {Object} the data to insert into the db
 - **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.
 
@@ -410,14 +434,14 @@ db.books.insert({
   title: 'On the Road',
   author: {  // "author" is the foreign key name
     name: 'Jack Kerouac'
-  }
+  },
+  reviews: [ // shorthand for 'book:reviews' <foreignKeyName>:<tableName>
+    { stars: 5, body: 'Psychadelic!'},
+    { stars: 4, body: 'Bizarre, unpredictable yet strangely alluring.'}
+  ]
 }, function (err, book) {
   console.log(book)
   // { id: 1, title: On the Road, author_id: 1 }
-  book.hydrate('author', function (err, book) {
-    console.log(book)
-    // { id: 1, title: On the Road, author_id: 1, author: { id: 1, name: Jack Kerouac, books: [1] } }
-  })
 })
 ```
 
@@ -425,9 +449,10 @@ db.books.insert({
 ## db.***table***.mget( primaryKeys, [opts], [cb] )
 
 Gets many rows from the database by primary key.
+
 - **primaryKeys** {Array} the primary keys of the rows to get
 - **opts** {Object} *(optional)* options
-    - **hydrate** {String|Array} hydrates the specified foreign keys
+    - **hydrate** {String|Array} hydrates the specified foreign keys (see [`hydrate`](#hydrate))
 - **cb** {Function} *(optional)* callback(err, rows) If *cb* is not provided, a Promise is returned.
 
 ```js
@@ -442,6 +467,7 @@ db.books.mget(bookIds, function (err, books) {
 ## db.***table***.save( data, [cb] )
 
 Inserts or updates depending on whether the primary key exists in the db.
+
 - **data** {Object} the data to save
 - **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.
 
@@ -459,25 +485,74 @@ db.books.save(formPOST, function (err, book) {
 # Row
 
 <a name="hydrate" />
-## row.hydrate( foreignKeyName, [cb] )
+## row.hydrate( propertyName, [cb] )
 
-Gets the record(s) linked with the specified foreign key(s)
-- **foreignKeyName** {String|Array} the name of the foreign key constraint(s)
+Gets the record(s) linked with the specified foreign key(s) and/or foreign table(s).
+
+- **propertyName** {String|Array} the name of the hydratable property to fetch and attach to this row. There are two types of hydratable property names:
+    - 1-to-1 foreign key constraint name
+    - 1-to-many foreign table name
 - **cb** {Function} *(optional)* callback(err) If *cb* is not provided, a Promise is returned.
 
 ```js
 db.books.get(1, function (err, book) {
   console.log(book)
   // { id: 1, title: On the Road, author_id: 1 }
+
+  // hydrate a 1-to-1 linked row
   book.hydrate('author', function (err) {
-    console.log(book)
-    // {
-    //   id: 1,
-    //   title: On the Road,
-    //   author_id: 1,
-    //   author: { id: 1, name: Jack Kerouac, books: [1] }
-    // }
+    console.log(book.author)
+    // { id: 1, name: Jack Kerouac }
   })
+
+  // hydrate 1-to-many linked rows
+  book.hydrate('reviews', function (err) {
+    console.log(book.reviews)
+    // [ { stars: 5, body: 'Psychadelic!' }, { stars: 4, body: 'Bizarre...' } ]
+  })
+})
+```
+
+When hydrating a 1-to-1 row, the *propertyName* is the name of your foreign key constraint. For example, a book has one author, so we have a table `books` with a column `author_id` which has a foreign key constraint named `author` which links to `author.id`.
+
+```js
+// 1-to-1
+book.hydrate('author', function (err) {
+  console.log(book.author)
+  // { id: 1, name: Jack Kerouac }
+})
+```
+
+When hydrating 1-to-many rows, it is recommended to specify the fully qualified hydratable *propertyName* formatted as `foreignKeyName:tableName`. However, for convenience, if the foreign table has only one foreign key that references this table, you may omit `foreignKeyName:` and simply use `tableName` shorthand notation.
+
+For example, a book has many reviews, so we have a table `reviews` with a column `book_id` which has a foreign key constraint named `book` which links to `book.id`.
+
+```js
+// 1-to-many (fully qualified notation)
+book.hydrate('book:reviews', function (err) {
+  console.log(book['book:reviews'])
+  // [ { stars: 5, body: 'Psychadelic!' }, { stars: 4, body: 'Bizarre...' } ]
+})
+
+// 1-to-many (shorthand notation)
+book.hydrate('reviews', function (err) {
+  console.log(book.reviews)
+  // [ { stars: 5, body: 'Psychadelic!' }, { stars: 4, body: 'Bizarre...' } ]
+})
+```
+
+Hydrate multiple properties in parallel:
+
+```js
+book.hydrate(['author', 'reviews'], function (err) {
+  console.log(book)
+  // {
+  //   id: 1,
+  //   title: On the Road,
+  //   author_id: 1,
+  //   author: { id: 1, name: Jack Kerouac },
+  //   reviews: [ { stars: 5, body: 'Psychadelic!' }, { stars: 4, body: 'Bizarre...' } ]
+  // }
 })
 ```
 
@@ -485,6 +560,7 @@ db.books.get(1, function (err, book) {
 ## row.save( [cb] )
 
 Saves the modified property values to the database (recursively).
+
 - **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.
 
 ```js
@@ -503,6 +579,7 @@ db.books.get(1, function (err, book) {
 ## row.set( data )
 
 Modifies multiple property values but does NOT save to the db.
+
 - **data** {Object} the data to modify
 
 ```js
@@ -521,6 +598,7 @@ db.books.get(1, function (err, book) {
 ## row.update( data, [cb] )
 
 Update an existing row. A convenience method for `set()` then `save()`.
+
 - **data** {Object} the data to save
 - **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.
 
@@ -535,4 +613,4 @@ book.update({
 
 ## Known Issues
 
-- Tables containing `JSON` data type are not supported (use `JSONB` instead!)
+- Postgres tables containing `JSON` data type are not supported (use `JSONB` instead!)
