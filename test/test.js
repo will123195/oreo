@@ -215,12 +215,13 @@ platforms.forEach(function(config) {
       })
     })
 
-    it('should mget - promise', function(done) {
-      db.authors.mget([1984, 1]).then(function(authors) {
+    it('should mget with null value - promise', function(done) {
+      db.authors.mget([1984, 999999, 1]).then(function(authors) {
         ok(authors[0].id === 1984, 'did not get first author')
-        ok(authors[1].id === 1, 'did not get second author')
+        ok(authors[1] === null, 'second author is not null')
+        ok(authors[2].id === 1, 'did not get third author')
         done()
-      })
+      }).catch(showError)
     })
 
     it('should get (composite primary key object)', function(done) {
@@ -698,7 +699,7 @@ platforms.forEach(function(config) {
       })
     })
 
-    it('should cache mget composite - promise', function(done) {
+    it('should cache mget using composite keys - promise', function(done) {
       db.authors.db._opts.cache = mockRedis()
       db.authors.get(1).then(function (author) {
         var list = [

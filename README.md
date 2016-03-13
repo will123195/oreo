@@ -455,7 +455,7 @@ See also: [`hydrate`](#hydrate)
 <a name="mget" />
 ## db.***table***.mget( primaryKeys, [opts], [cb] )
 
-Gets many rows by primary key.
+Gets many rows by primary key in the specified order. A `null` value will be returned for each primary key that does not exist.
 
 - **primaryKeys** {Array} the primary keys of the rows to get
 - **opts** {Object} *(optional)* options
