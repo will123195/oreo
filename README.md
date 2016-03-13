@@ -156,9 +156,9 @@ function runExampleQueries () {
 
   // Find one author
   db.authors.findOne({
-    where: {
-      name: 'Hunter %'
-    }
+    where: [
+      "name like 'Hunter %'"
+    ]
   }).then(function (author) {
     console.log(author) // { id: 1, name: Hunter S. Thompson }
   })
@@ -335,7 +335,7 @@ Finds multiple rows.
 
 ```js
 db.authors.find({
-  where: ["name ilike 'Jack%'"],
+  where: [ "name like 'Jack%'" ],
   order: 'name asc',
   offset: 5,
   limit: 5,
@@ -379,7 +379,7 @@ Finds exactly one row.
 
 ```js
 db.authors.findOne({
-  where: ["name ilike 'Jack%'"],
+  where: [ "name like 'Jack%'" ],
   order: 'name asc',
   offset: 5
 }, function (err, author) {
