@@ -338,9 +338,11 @@ db.authors.find({
   where: ["name ilike 'Jack%'"],
   order: 'name asc',
   offset: 5,
-  limit: 5
+  limit: 5,
+  hydrate: ['books']
 }, function (err, authors) {
-  console.log(authors[0].id) // 1
+  console.log(authors)
+  // [ { id: 1, name: Jack Kerouac, books: [ { id: 1, title: On the Road, author_id: 1 } ] } ]
 })
 ```
 
@@ -398,7 +400,7 @@ Gets a row by primary key.
 ```js
 var primaryKey = 1 // var primaryKey = { id: 1 } // this also works
 db.authors.get(primaryKey, function (err, author) {
-  console.log(author) // { id: 1, name: Jack Kerouak, books: [1] }
+  console.log(author) // { id: 1, name: Jack Kerouak }
 })
 ```
 
