@@ -95,7 +95,8 @@ var db = oreo({
   debug: console.log,
   memoize: 150, // optional duration in ms to memoize rows
   cache: redisClient, // optional
-  Promise: Promise // optional, default: global.Promise
+  Promise: Promise, // optional, default: global.Promise
+  models: {} // optional
 }).then(runExampleQueries)
 
 function runExampleQueries () {
@@ -204,15 +205,16 @@ CREATE TABLE reviews (
 Instantiates the `db` object and configures the database connection string(s).
 
 - **opts** {Object} options
-    - **driver** `pg` or `mysql`
-    - **hosts** array of possible hosts, each is checked to see if it is online and writable or read-only
-    - **name** the database name
-    - **user** the username
-    - **password** the password
-    - **debug** *(optional, default `false`)* set to `console.log` to see info about running queries
-    - **memoize** *(optional, default `false`)* duration in milliseconds to cache rows in process memory. Setting this to `150` is generally a no-brainer to prevent redundant queries.
-    - **cache** *(optional, default `false`)* object with `get(key)` and/or `set(key, val)` methods (i.e. redis) to cache full rows (indefinitely). Cached rows are recached after `save()`/`insert()`/`update()`/`delete()`. The [Table functions](#table) fetch rows from the cache (and only fetch from sql the rows that are not cached).
-    - **Promise** *(optional, default `global.Promise`)* You may plug in your own Promise library that is compatible with native promises, i.e. `Promise: require('bluebird')`. Then a promise will be returned if a callback is not specified.
+    - **driver** {String} `pg` or `mysql`
+    - **hosts** {Array} list of possible hosts, each is checked to see if it is online and writable or read-only
+    - **name** {String} the database name
+    - **user** {String} the username
+    - **password** {String} the password
+    - **debug** {Function} *(optional, default `false`)* set to `console.log` to see info about running queries
+    - **memoize** {Integer} *(optional, default `false`)* duration in milliseconds to cache rows in process memory. Setting this to `150` is generally a no-brainer to prevent redundant queries.
+    - **cache** {Object} *(optional, default `false`)* object with `get(key)` and/or `set(key, val)` methods (i.e. redis) to cache full rows (indefinitely). Cached rows are recached after `save()`/`insert()`/`update()`/`delete()`. The [Table functions](#table) fetch rows from the cache (and only fetch from sql the rows that are not cached).
+    - **Promise** {Object} *(optional, default `global.Promise`)* You may plug in your own Promise library that is compatible with native promises, i.e. `Promise: require('bluebird')`. Then a promise will be returned if a callback is not specified.
+    - **models** {Object} *(optional)* each table may have a model "class" specified which will be used to instantiate rows of that table. For example, `models.myTable = class MyTable {}`
 - **cb** {Function} *(optional)* callback(err) If *cb* is not provided, a Promise is returned.
 
 ```js
@@ -227,6 +229,7 @@ var db = oreo({
   //memoize: 0,
   //cache: null,
   //Promise: global.Promise
+  //models: {}
 }, function (err) {
   db.execute('select now() as now', function (err, rs) {
     console.log('now:', rs[0].now)

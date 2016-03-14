@@ -1,7 +1,6 @@
 var async = require('async')
 var query = require('./lib/query')
 var Table = require('./lib/table')
-var Row = require('./lib/row')
 var hide = require('./lib/hideProperty')
 var promiseResolver = require('./lib/promiseResolver')
 var extend = require('./lib/extend')
@@ -30,7 +29,6 @@ var oreo = module.exports = function oreo(opts, cb) {
   hide(self, '_isReady')
   hide(self, '_memo')
 
-  self.Row = Row
   self._isReady = false
   self._tables = []
   self._opts = extend({}, opts)
@@ -99,7 +97,7 @@ oreo.prototype.discover = function(cb) {
     if (err) return cb(err)
 
     // for each table
-    async.eachSeries(tables, function(table_name, callback) {
+    async.each(tables, function(table_name, callback) {
       self._tables.push(table_name)
       // create a table object
       self[table_name] = new Table(table_name, self, callback)

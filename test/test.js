@@ -4,6 +4,10 @@ var fs = require('fs')
 var bluebird = require('bluebird')
 var async = require('async')
 
+var models = {
+  books: require('./Book')
+}
+
 var db
 var platforms = [
   {
@@ -14,7 +18,8 @@ var platforms = [
     name: 'oreo_test',
     debug: false,
     silent: true,
-    Promise: global.Promise || bluebird
+    Promise: global.Promise || bluebird,
+    models: models
   },
   {
     driver: 'pg',
@@ -25,7 +30,8 @@ var platforms = [
     debug: false,
     silent: true,
     memoize: 150,
-    Promise: global.Promise || bluebird
+    Promise: global.Promise || bluebird,
+    models: models
   },
   {
     driver: 'mysql',
@@ -35,7 +41,8 @@ var platforms = [
     name: 'oreo_test',
     debug: false,
     silent: true,
-    Promise: global.Promise || bluebird
+    Promise: global.Promise || bluebird,
+    models: models
   }
 ]
 
@@ -611,13 +618,12 @@ platforms.forEach(function(config) {
       })
     })
 
-    it('should bind row methods', function(done) {
-      db.books._methods.getTitle = function() {
-        return this.title
-      }
+    it('should instantiate model - cb', function(done) {
       db.books.get(1, function(err, book) {
         ok(!err, err)
+        ok(book.constructor.name === 'Book', 'did not instantiate Book')
         ok(book.getTitle() === book.title, 'did not get title')
+        ok(book.getTitle2() === book.title, 'did not run model constructor')
         done()
       })
     })
