@@ -9,7 +9,7 @@
 - No dependencies
 - Zero configuration -- auto-detects columns, primary keys and foreign keys
 - Saves multi-table nested objects with an atomic transaction
-- Detects primary/read-only hosts
+- Detects primary and read-only hosts
 - Use callbacks or plug in your own Promise library
 - Optional row memoization and row caching
 
@@ -215,7 +215,7 @@ Instantiates the `db` object and configures the database connection string(s).
     - **memoize** {Integer} *(optional, default `false`)* duration in milliseconds to cache rows in process memory. Setting this to `150` is generally a no-brainer to prevent redundant queries.
     - **cache** {Object} *(optional, default `false`)* object with `get(key)` and/or `set(key, val)` methods (i.e. redis) to cache full rows (indefinitely). Cached rows are recached after `save()`/`insert()`/`update()`/`delete()`. The [Table functions](#table) fetch rows from the cache (and only fetch from sql the rows that are not cached).
     - **Promise** {Object} *(optional, default `global.Promise`)* You may plug in your own Promise library that is compatible with native promises, i.e. `Promise: require('bluebird')`. Then a promise will be returned if a callback is not specified.
-    - **models** {Object} *(optional)* each table may have a model "class" specified which will be used to instantiate rows of that table. For example, `models.myTable = class MyTable {}`
+    - **models** {Object} *(optional)* each table may have a model "class" specified which will be used to instantiate rows of that table. For example, `models.my_table = class MyTable {}`
 - **cb** {Function} *(optional)* callback(err) If *cb* is not provided, a Promise is returned.
 
 ```js
@@ -335,6 +335,7 @@ Finds multiple rows.
     - **limit** {Number}
     - **offset** {Number}
     - **hydrate** {String|Array} hydrates the specified foreign keys (see [`hydrate`](#hydrate))
+    - **params** {Object} key/value pairs to be substituted for `:key` patterns in the query
 - **cb** {Function} *(optional)* callback(err, rows) If *cb* is not provided, a Promise is returned.
 
 ```js
@@ -354,22 +355,30 @@ The `where` option has several valid formats:
 - {String}
 
     ```js
-    where: "field = 'abc' and field2 > 1"
+    where: "field = :f1 and field2 > :f2",
+    params: {
+      f1: 'abc',
+      f2: 1
+    }
     ```
 - {Array}
 
     ```js
     where: [
-      "field = 'abc'",
-      "field2 > 1"
-    ]
+      "field = :f1",
+      "field2 > :f2"
+    ],
+    params: {
+      f1: 'abc',
+      f2: 1
+    }
     ```
 - {Object}
 
     ```js
     where: {
       field: 'abc',
-      field2: { $gt: 1 }
+      field2: { $gt: 1 } // query operators are coming soon
     }
     ```
 
