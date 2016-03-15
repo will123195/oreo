@@ -73,18 +73,18 @@ var mockRedis = function() {
   }
 }
 
-it('should fail with unknown driver', function(done) {
-  db = oreo({
-    driver: 'mssql'
-  }, function(err) {
-    ok(!!err, 'did not fail')
-    done()
+describe('oreo', function() {
+
+  it('should fail with unknown driver', function(done) {
+    db = oreo({
+      driver: 'mssql'
+    }, function(err) {
+      ok(!!err, 'did not fail')
+      done()
+    })
   })
-})
 
-platforms.forEach(function(config) {
-
-  describe('oreo', function() {
+  platforms.forEach(function(config) {
 
     it('should connect and discover - cb', function(done) {
       console.log('\n', config.driver)
@@ -807,6 +807,55 @@ platforms.forEach(function(config) {
       })
     })
 
+    it('should delete', function(done) {
+      var newBook = {
+        title: 'XYZ Book',
+        author: {
+          name: 'XYZ Author'
+        }
+      }
+      db.books.insert(newBook, function(err, book) {
+        no(err)
+        var bookId = book.id
+        var authorId = book.author_id
+        ok(!!book.id, 'did not insert book')
+        book.delete(function(err) {
+          no(err)
+          ok(!book.id, 'book should be deleted')
+          db.books.get(bookId, function (err, book) {
+            ok(!!err && !!err.notFound, 'should not find deleted book')
+            db.authors.get(authorId, function (err, author) {
+              no(err)
+              ok(!!author.id, 'should not delete author')
+              done()
+            })
+          })
+        })
+      })
+    })
+
+    it('should not delete without cascade', function(done) {
+      var newBook = {
+        title: 'XYZ Book',
+        author: {
+          name: 'XYZ Author'
+        }
+      }
+      db.books.insert(newBook, function(err, book) {
+        no(err)
+        var bookId = book.id
+        var authorId = book.author_id
+        ok(!!book.id, 'did not insert book')
+        book.hydrate('author', function (err) {
+          no(err)
+          book.author.delete(function(err) {
+            ok(!!err, 'should not delete without cascade')
+            done()
+          })
+        })
+      })
+    })
+
     it('should save 1-to-1 nested object (insert + insert)', function(done) {
       var newBook = {
         id: 11,
@@ -962,4 +1011,5 @@ platforms.forEach(function(config) {
     })
 
   })
+
 })

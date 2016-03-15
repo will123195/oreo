@@ -72,6 +72,7 @@ var db = oreo({
 
 ## Row
 
+* [`delete`](#delete)
 * [`hydrate`](#hydrate)
 * [`save`](#save)
 * [`set`](#set)
@@ -503,6 +504,20 @@ db.books.save(formPOST, function (err, book) {
 ```
 
 # Row
+
+<a name="delete" />
+## row.delete( [cb] )
+
+Deletes an existing row from the database.
+
+- **cb** {Function} *(optional)* callback(err) If *cb* is not provided, a Promise is returned.
+
+```js
+book.delete(function (err) {
+  console.log(book)
+  // {}
+})
+```
 
 <a name="hydrate" />
 ## row.hydrate( propertyName, [cb] )
