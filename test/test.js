@@ -2,7 +2,7 @@ var oreo = require('..')
 var ok = require('assert').ok
 var fs = require('fs')
 var bluebird = require('bluebird')
-var async = require('async')
+var async = require('../lib/async')
 
 var models = {
   books: require('./Book')
@@ -586,14 +586,16 @@ platforms.forEach(function(config) {
     it('should hydrate in parallel - cb', function(done) {
       db.samples.get(1, function(err, sample) {
         ok(!err, err)
-        async.parallel([
+        async.each([
           function(next) {
             sample.hydrate('book', next)
           },
           function(next) {
             sample.hydrate('rating', next)
           }
-        ], function (err) {
+        ], function (fn, end) {
+          fn(end)
+        }, function (err) {
           no(err)
           ok(sample.book.id === sample.book_id, 'did not hydrate book')
           ok(sample.rating.author_id === sample.author_id, 'did not hydrate rating')

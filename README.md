@@ -6,8 +6,9 @@
 # Features
 
 - Simple syntax for multi-table CRUD operations
-- Detects relationships (primary keys and foreign keys)
-- Save multi-table nested objects in a single transaction
+- No dependencies
+- Zero configuration -- auto-detects columns, primary keys and foreign keys
+- Saves multi-table nested objects with an atomic transaction
 - Detects primary/read-only hosts
 - Use callbacks or plug in your own Promise library
 - Optional row memoization and row caching

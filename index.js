@@ -1,4 +1,4 @@
-var async = require('async')
+var async = require('./lib/async')
 var query = require('./lib/query')
 var Table = require('./lib/table')
 var hide = require('./lib/hideProperty')
