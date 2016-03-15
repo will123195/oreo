@@ -132,6 +132,11 @@ function runExampleQueries () {
     }).then(function (book) {
       console.log(book) // { id: 1, title: The Rum Diary, author_id: 1 }
     })
+
+    // Delete a book
+    book.delete().then(function () {
+      console.log(book) // {}
+    })
   })
 
   // Get an author by primary key
