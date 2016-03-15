@@ -50,6 +50,10 @@ var showError = function (err) {
   console.log(err.stack)
 }
 
+var no = function (err) {
+  ok(!err, err + '')
+}
+
 var mockRedis = function() {
   var cache = {}
   return {
@@ -85,7 +89,7 @@ platforms.forEach(function(config) {
     it('should connect and discover - cb', function(done) {
       console.log('\n', config.driver)
       db = oreo(config, function(err) {
-        ok(!err, err)
+        no(err)
         done()
       })
     })
@@ -99,14 +103,14 @@ platforms.forEach(function(config) {
     it('should create tables', function(done) {
       var sql = fs.readFileSync(__dirname + '/schema/' + config.driver + '.sql', 'utf8')
       db.executeWrite(sql, function(err, rs) {
-        ok(!err, err)
+        no(err)
         done()
       })
     })
 
     it('should rediscover - cb', function(done) {
       db.discover(function(err) {
-        ok(!err, err)
+        no(err)
         ok(!!db.authors, 'authors not discovered')
         done()
       })
@@ -125,20 +129,20 @@ platforms.forEach(function(config) {
       db.authors.insert({
         name: 'Jack Kerouac'
       }, function(err, author) {
-        ok(!err, err)
+        no(err)
         ok(author.id === 1, 'did not insert author - should insert')
         db.books.insert({
           title: 'On the Road',
-          author_id: 1
+          author_id: author.id
         }, function(err, book) {
-          ok(!err, err)
+          no(err)
           ok(book.id === 1, 'did not insert book')
           db.ratings.insert({
-            author_id: 1,
-            book_id: 1,
+            author_id: author.id,
+            book_id: book.id,
             stars: 10
           }, function(err, rating) {
-            ok(!err, err)
+            no(err)
             ok(rating.stars === 10, 'did not insert rating')
             done()
           })
@@ -153,16 +157,90 @@ platforms.forEach(function(config) {
         ok(author.id === 2, 'did not insert author - should insert')
         db.books.insert({
           title: 'The Electric Kool-Aid Acid Test',
-          author_id: 2
+          author_id: author.id
         }).then(function(book) {
           ok(book.id === 2, 'did not insert book')
           db.ratings.insert({
-            author_id: 2,
-            book_id: 2,
+            author_id: author.id,
+            book_id: book.id,
             stars: 9
           }).then(function(rating) {
             ok(rating.stars === 9, 'did not insert rating')
             done()
+          })
+        })
+      })
+    })
+
+    it('should save field with same name as 1-to-m fk - cb', function(done) {
+      db.authors.save({
+        id: 2,
+        books: [2]
+      }, function(err, author) {
+        no(err)
+        db.authors.get(2, function(err, author) {
+          ok(author.books.toString() === '2', 'did not save books value')
+          author.hydrate('books', function (err) {
+            ok(!!err, 'books should not be hydratable')
+            done()
+          })
+        })
+      })
+    })
+
+    it('should not save 1-to-m row with same name as field - cb', function(done) {
+      db.authors.save({
+        id: 2,
+        books: [
+          {id: 2, author_id: 2, title: 'Working Title'}
+        ]
+      }, function(err, author) {
+        ok(!!err, 'books should not save')
+        done()
+      })
+    })
+
+    it('should save field with same name as 1-to-1 fk - cb', function(done) {
+      db.authors.save({
+        id: 2,
+        country: {
+          code: 'US',
+          name: 'United States'
+        }
+      }, function(err, author) {
+        no(err)
+        ok(author.country === 'US', 'author.country')
+        db.authors.get(2, function(err, author) {
+          no(err)
+          ok(author.country === 'US', 'did not save author.country')
+          author.hydrate('country', function (err) {
+            no(err)
+            ok(author.country.name === 'United States', 'author.country.name')
+            author.country.update({
+              name: 'USA'
+            }, function (err, country) {
+              no(err)
+              ok(country.name === 'USA', 'country.name not USA')
+              author.update({
+                country: {
+                  code: 'CA',
+                  name: 'Canada'
+                }
+              }, function (err, author) {
+                no(err)
+                ok(author.country === 'CA', 'author.country not CA')
+                author.update({
+                  country: 'MX'
+                }, function (err, author) {
+                  ok(!!err, 'should violate fk constraint')
+                  db.authors.get(2, function (err, author) {
+                    no(err)
+                    ok(author.country === 'CA', 'author.country should still be CA')
+                    done()
+                  })
+                })
+              })
+            })
           })
         })
       })
@@ -174,10 +252,10 @@ platforms.forEach(function(config) {
         name: 'Stephen King'
       }
       db.authors.save(data, function(err, author) {
-        ok(!err, err)
+        no(err)
         ok(author.id === 1408, 'did not insert author')
         db.authors.save(data, function(err, author) {
-          ok(!err, err)
+          no(err)
           ok(author.id === 1408, 'did not update author')
           done()
         })
@@ -200,7 +278,7 @@ platforms.forEach(function(config) {
 
     it('should get - cb', function(done) {
       db.authors.get(1, function(err, author) {
-        ok(!err, err)
+        no(err)
         ok(author.id === 1, 'did not get author')
         done()
       })
@@ -215,7 +293,7 @@ platforms.forEach(function(config) {
 
     it('should mget - cb', function(done) {
       db.authors.mget([1, 1984], function(err, authors) {
-        ok(!err, '' + err)
+        no(err)
         ok(authors[0].id === 1, 'did not get authors')
         ok(authors[1].id === 1984, 'did not get second author')
         done()
@@ -236,7 +314,7 @@ platforms.forEach(function(config) {
         author_id: 1,
         book_id: 1
       }, function(err, rating) {
-        ok(!err, err)
+        no(err)
         ok(rating.stars === 10, 'did not get rating')
         done()
       })
@@ -244,7 +322,7 @@ platforms.forEach(function(config) {
 
     it('should get (composite primary key array)', function(done) {
       db.ratings.get([1, 1], function(err, rating) {
-        ok(!err, err)
+        no(err)
         ok(rating.stars === 10, 'did not get rating')
         done()
       })
@@ -252,7 +330,7 @@ platforms.forEach(function(config) {
 
     it('should find all - cb', function(done) {
       db.authors.find(function(err, authors) {
-        ok(!err, err)
+        no(err)
         ok(authors.length === 4, 'authors.length')
         done()
       })
@@ -269,7 +347,7 @@ platforms.forEach(function(config) {
       db.authors.find({
         where: "name = 'Jack Kerouac'"
       }, function(err, authors) {
-        ok(!err, err)
+        no(err)
         ok(authors[0].id === 1, 'did not find author')
         done()
       })
@@ -279,7 +357,7 @@ platforms.forEach(function(config) {
       db.authors.find({
         where: ["name = 'Jack Kerouac'"]
       }, function(err, authors) {
-        ok(!err, err)
+        no(err)
         ok(authors[0].id === 1, 'did not find author')
         done()
       })
@@ -293,7 +371,7 @@ platforms.forEach(function(config) {
         }
       }
       db.authors.find(opts, function(err, authors) {
-        ok(!err, err)
+        no(err)
         ok(authors[0].id === 1, 'did not find author')
         ok(authors[0].name === opts.params.name, 'did not find author name')
         done()
@@ -306,7 +384,7 @@ platforms.forEach(function(config) {
           name: 'Jack Kerouac'
         }
       }, function(err, authors) {
-        ok(!err, err)
+        no(err)
         ok(authors[0].id === 1, 'did not find author')
         done()
       })
@@ -318,7 +396,7 @@ platforms.forEach(function(config) {
           stars: 10
         }
       }, function(err, ratings) {
-        ok(!err, err)
+        no(err)
         ok(ratings[0].author_id === 1, 'did not find rating')
         done()
       })
@@ -358,7 +436,7 @@ platforms.forEach(function(config) {
       db.authors.findOne({
         where: "name = 'Jack Kerouac'"
       }, function(err, author) {
-        ok(!err, err)
+        no(err)
         ok(author.id === 1, 'did not findOne author')
         done()
       })
@@ -375,11 +453,12 @@ platforms.forEach(function(config) {
 
     it('should update - cb', function(done) {
       db.authors.get(1, function(err, author) {
-        ok(!err, err)
+        no(err)
         var new_name = 'Jim Kerouac'
         author.update({
           name: new_name
         }, function(err, author) {
+          no(err)
           ok(author.id === 1, 'did not get correct author')
           ok(author.name === new_name, 'did not update author')
           done()
@@ -402,7 +481,7 @@ platforms.forEach(function(config) {
 
     it('should hydrate - cb', function(done) {
       db.books.get(1, function(err, book) {
-        ok(!err, err)
+        no(err)
         book.hydrate('author', function(err) {
           ok(book.author.id === book.author_id, 'did not hydrate author')
           ok(book.id === 1, 'weird')
@@ -427,7 +506,7 @@ platforms.forEach(function(config) {
         book_id: 1,
         description: 'this is an example'
       }, function(err, data) {
-        ok(!err, err)
+        no(err)
         db.samples.get(data.id, function(err, sample) {
           sample.hydrate('rating', function(err) {
             ok(sample.rating.stars === 10, 'did not hydrate rating')
@@ -515,7 +594,7 @@ platforms.forEach(function(config) {
             sample.hydrate('rating', next)
           }
         ], function (err) {
-          ok(!err, err)
+          no(err)
           ok(sample.book.id === sample.book_id, 'did not hydrate book')
           ok(sample.rating.author_id === sample.author_id, 'did not hydrate rating')
           done()
@@ -560,7 +639,7 @@ platforms.forEach(function(config) {
       db.books.findOne({
         hydrate: ['author']
       }, function(err, book) {
-        ok(!err, err)
+        no(err)
         ok(!!book.id, 'book.id')
         ok(!!book.author.id, 'book.author.id')
         done()
@@ -569,7 +648,7 @@ platforms.forEach(function(config) {
 
     it('should set', function(done) {
       db.authors.get(1, function(err, author) {
-        ok(!err, err)
+        no(err)
         var old_name = author.name
         var new_name = 'Jack Kerouac'
         author.set({
@@ -583,7 +662,7 @@ platforms.forEach(function(config) {
 
     it('should save a row instance - cb', function(done) {
       db.authors.get(1, function(err, author) {
-        ok(!err, err)
+        no(err)
         var new_name = 'Jack2'
         author.set({
           name: new_name
@@ -620,7 +699,7 @@ platforms.forEach(function(config) {
 
     it('should instantiate model - cb', function(done) {
       db.books.get(1, function(err, book) {
-        ok(!err, err)
+        no(err)
         ok(book.constructor.name === 'Book', 'did not instantiate Book')
         ok(book.getTitle() === book.title, 'did not get title')
         ok(book.getTitle2() === book.title, 'did not run model constructor')
@@ -636,7 +715,7 @@ platforms.forEach(function(config) {
       ], {
         name: 'Jack3',
       }, function(err, rs) {
-        ok(!err, err)
+        no(err)
         ok(rs[0].id === 1, 'wrong record')
         done()
       })
@@ -664,6 +743,7 @@ platforms.forEach(function(config) {
         if (err) return done() // postgres errors and that is cool
         // mysql doesn't error, so let's make sure the injected sql didn't run
         db.books.get(1, function(err, book) {
+          no(err)
           ok(book.title !== 'sqli', 'injected update ran')
           done()
         })
@@ -673,14 +753,14 @@ platforms.forEach(function(config) {
     it('should cache - cb', function(done) {
       db.books.db._opts.cache = mockRedis()
       db.books.get(1, function(err, book) {
-        ok(!err, err)
+        no(err)
         var new_title = 'New Title'
         book.update({
           title: new_title
         }, function(err) {
-          ok(!err, err)
+          no(err)
           db.books.get(1, function(err, book) {
-            ok(!err, err)
+            no(err)
             ok(book.title === new_title, 'did not save new title')
             ok(book.fromCache, 'did not get value from cache')
             done()
@@ -734,10 +814,10 @@ platforms.forEach(function(config) {
         }
       }
       db.books.save(newBook, function(err, book) {
-        ok(!err, err)
+        no(err)
         ok(book.id === 11, 'did not insert book')
         book.hydrate('author', function(err) {
-          ok(!err, err)
+          no(err)
           ok(book.author_id === book.author.id, 'did not insert author')
           done()
         })
@@ -772,11 +852,11 @@ platforms.forEach(function(config) {
         }
       }
       db.books.save(newBookData, function(err, book) {
-        ok(!err, err)
+        no(err)
         book.hydrate('author', function(err) {
-          ok(!err, err)
+          no(err)
           book.author.hydrate('country', function(err) {
-            ok(!err, err)
+            no(err)
             ok(book.author.country.name === 'United States', 'did not save')
             done()
           })
@@ -817,12 +897,12 @@ platforms.forEach(function(config) {
         ]
       }
       db.authors.save(newAuthor, function(err, author) {
-        ok(!err, err)
+        no(err)
         ok(!!author.id, 'did not insert author')
         ok(author.name === newAuthor.name, 'wrong author.name')
         var property = 'author:books'
         author.hydrate([property], function(err) {
-          ok(!err, err)
+          no(err)
           ok(!!author[property], 'did not hydrate books')
           ok(author[property].length === newAuthor[property].length, 'wrong number of books')
           var book = author[property][0]
@@ -842,12 +922,12 @@ platforms.forEach(function(config) {
         ]
       }
       db.books.save(newBook, function(err, book) {
-        ok(!err, err)
+        no(err)
         ok(!!book.id, 'did not insert book')
         ok(book.title === newBook.title, 'wrong book.title')
         var property = 'samples'
         book.hydrate(property, function(err) {
-          ok(!err, err)
+          no(err)
           ok(!!book[property], 'did not hydrate samples')
           ok(book[property].length === newBook[property].length, 'wrong number of samples')
           var sample = book[property][0]
@@ -860,8 +940,10 @@ platforms.forEach(function(config) {
 
     // TODO:
     // save rows of the same table in parallel
-    // should fail saving a 1-to-m row that attempts to modify a foreign key value
+    // should fail saving a 1-to-m row that attempts to modify a foreign key column
     // should not allow updating foreign key value(s) in a 1-to-1 nested save
+    // should not allow updating a 1-to-m row if primary key is specified and fk doesn't match this.pk
+    // should not allow updating a 1-to-1 row if primary key is specified and pk not match this.ftbl_id
     // more nested save tests
     // composite primary key insert / update
     // primary key id is specified for insert
@@ -869,8 +951,7 @@ platforms.forEach(function(config) {
     // update table with javascript Date value
     // test sql-injection during save - not just select
     // onReady
-    // table.Row
-    // failed transactions behave as expected saving 1-to-1 and 1-to-m
+    // failed transactions rollback as expected saving 1-to-1 and 1-to-m
     // 1-to-1 and 1-to-m unmodified values should not be updated
 
     it('should kill the connection pool', function (done) {

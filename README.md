@@ -5,9 +5,9 @@
 
 # Features
 
-- Simple syntax for CRUD operations
+- Simple syntax for multi-table CRUD operations
 - Detects relationships (primary keys and foreign keys)
-- Read/write multi-table nested objects in a single transaction
+- Save multi-table nested objects in a single transaction
 - Detects primary/read-only hosts
 - Use callbacks or plug in your own Promise library
 - Optional row memoization and row caching
