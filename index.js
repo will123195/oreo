@@ -36,7 +36,7 @@ var oreo = module.exports = function oreo(opts, cb) {
   self._promiseResolver = promiseResolver
   self._memo = {} // memoized query results
 
-  cb = cb || self._promiseResolver()
+  cb = cb || function () {}
 
   if (supportedDrivers.indexOf(opts.driver) === -1) {
     return cb(new Error('"' + opts.driver + '" is not a supported driver.'))
@@ -79,7 +79,7 @@ var oreo = module.exports = function oreo(opts, cb) {
     }, intervalMs)
   }
 
-  return cb.promise ? cb.promise : this
+  return this
 }
 
 /**
@@ -140,6 +140,7 @@ oreo.prototype.onReady = function(fn) {
   }
   this._onReady = this._onReady || []
   this._onReady.push(fn)
+  return this
 }
 
 /**

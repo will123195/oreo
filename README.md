@@ -5,13 +5,11 @@
 
 # Features
 
-- Simple syntax for multi-table CRUD operations
-- No dependencies
 - Zero configuration -- auto-detects columns, primary keys and foreign keys
 - Saves multi-table nested objects with an atomic transaction
 - Detects primary and read-only hosts
 - Use callbacks or plug in your own Promise library
-- Optional row memoization and row caching
+- No dependencies
 
 # Database Support
 
@@ -99,7 +97,7 @@ var db = oreo({
   cache: redisClient, // optional
   Promise: Promise, // optional, default: global.Promise
   models: {} // optional
-}).then(runExampleQueries)
+}).onReady(runExampleQueries)
 
 function runExampleQueries () {
 
@@ -221,8 +219,8 @@ Instantiates the `db` object and configures the database connection string(s).
     - **memoize** {Integer} *(optional, default `false`)* duration in milliseconds to cache rows in process memory. Setting this to `150` is generally a no-brainer to prevent redundant queries.
     - **cache** {Object} *(optional, default `false`)* object with `get(key)` and/or `set(key, val)` methods (i.e. redis) to cache full rows (indefinitely). Cached rows are recached after `save()`/`insert()`/`update()`/`delete()`. The [Table functions](#table) fetch rows from the cache (and only fetch from sql the rows that are not cached).
     - **Promise** {Object} *(optional, default `global.Promise`)* You may plug in your own Promise library that is compatible with native promises, i.e. `Promise: require('bluebird')`. Then a promise will be returned if a callback is not specified.
-    - **models** {Object} *(optional)* each table may have a model "class" specified which will be used to instantiate rows of that table. For example, `models.my_table = class MyTable {}`
-- **cb** {Function} *(optional)* callback(err) If *cb* is not provided, a Promise is returned.
+    - **models** {Object} *(optional)* each table may have a model "class" specified which will be used to instantiate rows from that table. For example, `models.my_table = class MyTable {}`
+- **cb** {Function} *(optional)* callback(err)
 
 ```js
 var oreo = require('oreo')
@@ -301,14 +299,13 @@ Same as [`execute`](#execute) but executes the query on a writable (primary) hos
 
 Queues a function to be called when oreo's schema detection is complete (i.e. when oreo is initialized).
 
-- **cb** {Function} callback(err) If *cb* is not provided, a Promise is returned.
+- **cb** {Function} callback()
 
 ```js
 var db = oreo(config, function (err) {
   if (err) return console.log(err)
   console.log('Ready!')
-})
-db.onReady(function () {
+}).onReady(function () {
   console.log('onReady #1')
 })
 db.onReady(function () {

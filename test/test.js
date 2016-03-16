@@ -94,12 +94,6 @@ describe('oreo', function() {
       })
     })
 
-    it('should connect and discover - promise', function(done) {
-      oreo(config).then(function() {
-        done()
-      })
-    })
-
     it('should create tables', function(done) {
       var sql = fs.readFileSync(__dirname + '/schema/' + config.driver + '.sql', 'utf8')
       db.executeWrite(sql, function(err, rs) {
@@ -108,19 +102,42 @@ describe('oreo', function() {
       })
     })
 
+    it('should rediscover and end - promise', function(done) {
+      db.discover().then(function(db) {
+        ok(!!db.authors, 'authors not discovered')
+        config.schema = JSON.stringify(db)
+        db.authors.find().then(function () {
+          var isDone = false
+          db.end(function () {
+            if (isDone) return
+            isDone = true
+            done()
+          })
+        })
+      })
+    })
+
+    it('should connect and discover - schema and onReady', function(done) {
+      var count = 0
+      var isDone = function () {
+        count++
+        if (count === 2) done()
+      }
+      db = oreo(config, function (err) {
+        no(err)
+      }).onReady(function() {
+        isDone()
+      })
+      db.onReady(function () {
+        ok(!!db.authors, 'authors not discovered')
+        isDone()
+      })
+    })
+
     it('should rediscover - cb', function(done) {
       db.discover(function(err) {
         no(err)
         ok(!!db.authors, 'authors not discovered')
-        done()
-      })
-    })
-
-    it('should rediscover - promise', function(done) {
-      db.discover().then(function() {
-        ok(!!db.authors, 'authors not discovered')
-        ok(!!db.books, 'books not discovered')
-        ok(!!db.ratings, 'ratings not discovered')
         done()
       })
     })
@@ -1006,8 +1023,12 @@ describe('oreo', function() {
     // 1-to-1 and 1-to-m unmodified values should not be updated
 
     it('should kill the connection pool', function (done) {
-      db.end()
-      done()
+      var isDone = false
+      db.end(function () {
+        if (isDone) return
+        isDone = true
+        done()
+      })
     })
 
   })
