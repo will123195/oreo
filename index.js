@@ -147,5 +147,6 @@ oreo.prototype.onReady = function(fn) {
  *
  */
 oreo.prototype.end = function(cb) {
+  cb = cb || function () {}
   this._platform.end(cb)
 }
