@@ -9,3 +9,19 @@ Book.prototype.getTitle = function () {
 }
 
 module.exports = Book
+
+
+
+
+
+// 'use strict';
+// module.exports = class Book {
+//   constructor () {
+//     this.getTitle2 = function () {
+//       return this.title
+//     }
+//   }
+//   getTitle () {
+//     return this.title
+//   }
+// }
