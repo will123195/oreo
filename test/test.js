@@ -114,7 +114,7 @@ describe('oreo', function() {
             done()
           })
         })
-      })
+      }).catch(showError)
     })
 
     it('should connect and discover - schema and onReady', function(done) {
@@ -186,7 +186,7 @@ describe('oreo', function() {
             done()
           })
         })
-      })
+      }).catch(showError)
     })
 
     it('should save field with same name as 1-to-m fk - cb', function(done) {
@@ -290,7 +290,7 @@ describe('oreo', function() {
           ok(author.id === 1984, 'did not update author')
           done()
         })
-      })
+      }).catch(showError)
     })
 
     it('should get - cb', function(done) {
@@ -305,7 +305,22 @@ describe('oreo', function() {
       db.authors.get(1).then(function(author) {
         ok(author.id === 1, 'did not get author')
         done()
-      })
+      }).catch(showError)
+    })
+
+    it('should modify data in constructor', function(done) {
+      db.books.get(1).then(function(book) {
+        ok(typeof book.something === 'undefined', 'did not run constructor')
+        done()
+      }).catch(showError)
+    })
+
+    it('should get correct object name', function(done) {
+      db.books.get(1).then(function(book) {
+        ok(book instanceof db.books.Row, 'incorrect type')
+        ok(book.constructor.name === 'Book', 'incorrect name')
+        done()
+      }).catch(showError)
     })
 
     it('should mget - cb', function(done) {
@@ -357,7 +372,7 @@ describe('oreo', function() {
       db.authors.find().then(function(authors) {
         ok(authors.length === 4, 'authors.length')
         done()
-      })
+      }).catch(showError)
     })
 
     it('should find (where string)', function(done) {
@@ -426,7 +441,7 @@ describe('oreo', function() {
         ok(authors[0].id === 1984, 'order first')
         ok(authors[1].id === 1408, 'order second')
         done()
-      })
+      }).catch(showError)
     })
 
     it('should limit', function(done) {
@@ -435,7 +450,7 @@ describe('oreo', function() {
       }).then(function(authors) {
         ok(authors.length === 2, 'limit')
         done()
-      })
+      }).catch(showError)
     })
 
     it('should offset', function(done) {
@@ -446,7 +461,7 @@ describe('oreo', function() {
       }).then(function(authors) {
         ok(authors[0].id === 1408, 'offset')
         done()
-      })
+      }).catch(showError)
     })
 
     it('should findOne - cb', function(done) {
@@ -465,7 +480,7 @@ describe('oreo', function() {
       }).then(function(author) {
         ok(author.id === 1, 'did not findOne author')
         done()
-      })
+      }).catch(showError)
     })
 
     it('should update - cb', function(done) {
@@ -493,7 +508,7 @@ describe('oreo', function() {
           ok(author.name === new_name, 'did not update author')
           done()
         })
-      })
+      }).catch(showError)
     })
 
     it('should hydrate - cb', function(done) {
@@ -514,7 +529,7 @@ describe('oreo', function() {
           ok(book.id === 1, 'weird')
           done()
         })
-      })
+      }).catch(showError)
     })
 
     it('should hydrate composite foreign key', function(done) {
@@ -540,7 +555,7 @@ describe('oreo', function() {
           ok(!!author['author:books'][0].title, 'author:books[0].title')
           done()
         })
-      })
+      }).catch(showError)
     })
 
     it('should hydrate 1-to-m shorthand - promise', function(done) {
@@ -564,7 +579,7 @@ describe('oreo', function() {
       }).catch(function (err) {
         ok(!!err, 'should have ambiguous hydration error')
         done()
-      })
+      }).catch(showError)
     })
 
     it('should hydrate non-ambiguous 1-to-m - promise', function(done) {
@@ -579,7 +594,7 @@ describe('oreo', function() {
             done()
           })
         })
-      })
+      }).catch(showError)
     })
 
     it('should not hydrate wrong 1-to-m - promise', function(done) {
@@ -588,7 +603,7 @@ describe('oreo', function() {
       }).catch(function (err) {
         ok(!!err, 'should have error')
         done()
-      })
+      }).catch(showError)
     })
 
     it('should not hydrate shorthand 1-to-m conflicting column name - promise', function(done) {
@@ -597,7 +612,7 @@ describe('oreo', function() {
       }).catch(function (err) {
         ok(!!err, 'should have error')
         done()
-      })
+      }).catch(showError)
     })
 
     it('should hydrate in parallel - cb', function(done) {
@@ -628,7 +643,7 @@ describe('oreo', function() {
           ok(sample.rating.author_id === sample.author_id, 'did not hydrate rating')
           done()
         })
-      })
+      }).catch(showError)
     })
 
     it('should get and hydrate - promise', function(done) {
@@ -651,7 +666,7 @@ describe('oreo', function() {
         ok(!!books[1].id, 'books[1].id')
         ok(!!books[1].author.id, 'books[1].author.id')
         done()
-      })
+      }).catch(showError)
     })
 
     it('should findOne and hydrate - cb', function(done) {
@@ -713,7 +728,7 @@ describe('oreo', function() {
             done()
           })
         })
-      })
+      }).catch(showError)
     })
 
     it('should instantiate model - cb', function(done) {
@@ -750,7 +765,7 @@ describe('oreo', function() {
       }).then(function(rs) {
         ok(rs[0].id === 1, 'wrong record')
         done()
-      })
+      }).catch(showError)
     })
 
     it('should prevent semicolon sqli', function(done) {
@@ -801,7 +816,7 @@ describe('oreo', function() {
             done()
           })
         })
-      })
+      }).catch(showError)
     })
 
     it('should cache mget using composite keys - promise', function(done) {
@@ -821,7 +836,7 @@ describe('oreo', function() {
             done()
           })
         })
-      })
+      }).catch(showError)
     })
 
     it('should delete', function(done) {
@@ -905,7 +920,7 @@ describe('oreo', function() {
             done()
           })
         })
-      })
+      }).catch(showError)
     })
 
     it('should save 1-to-1-to-1 nested objects (insert + insert + insert)', function(done) {
@@ -1006,6 +1021,42 @@ describe('oreo', function() {
       })
     })
 
+    // it('should populate linking table keys', function(done) {
+    //   var newAuthor = {
+    //     name: 'Chuck Palahniuk',
+    //     ratings: [
+    //       {
+    //         stars: 5,
+    //         book: { title: 'Fight Club' }
+    //       },
+    //       {
+    //         stars: 4,
+    //         book: { title: 'Choke' }
+    //       }
+    //     ]
+    //   }
+    //   db.authors.save(newAuthor, function(err, author) {
+    //     no(err)
+    //     ok(!!author.id, 'did not insert author')
+    //     ok(author.name === newAuthor.name, 'wrong author.name')
+    //     var property = 'ratings'
+    //     author.hydrate([property], function(err) {
+    //       no(err)
+    //       ok(!!author[property], 'did not hydrate')
+    //       ok(author[property].length === newAuthor[property].length, 'wrong qty')
+    //       var rating = author[property][0]
+    //       console.log('rating:', rating)
+    //       rating.hydrate('book', function(err) {
+    //         var book = rating.book
+    //         console.log('book:', book)
+    //         ok(book.author_id === author.id, 'did not save book.author_id')
+    //         ok(book.title === newAuthor.ratings[0].book.title, 'wrong title')
+    //         done()
+    //       })
+    //     })
+    //   })
+    // })
+
     // TODO:
     // save rows of the same table in parallel
     // should fail saving a 1-to-m row that attempts to modify a foreign key column
@@ -1021,6 +1072,8 @@ describe('oreo', function() {
     // onReady
     // failed transactions rollback as expected saving 1-to-1 and 1-to-m
     // 1-to-1 and 1-to-m unmodified values should not be updated
+    // uncaught error when trying to save to a 1-to-m that exists but linked to a different table
+    // Row constructor can modify the data
 
     it('should kill the connection pool', function (done) {
       var isDone = false

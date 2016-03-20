@@ -1,4 +1,5 @@
-var Book = function Book () {
+var Book = function Book (data) {
+  delete data.something
   this.getTitle2 = function () {
     return this.title
   }

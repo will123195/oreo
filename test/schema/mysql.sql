@@ -1,3 +1,5 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
 DROP TABLE IF EXISTS battles CASCADE;
 DROP TABLE IF EXISTS samples CASCADE;
 DROP TABLE IF EXISTS books CASCADE;
@@ -25,14 +27,17 @@ CREATE TABLE books (
   id INTEGER AUTO_INCREMENT,
   title TEXT,
   author_id INTEGER,
+  something VARCHAR(1),
   CONSTRAINT books_pkey PRIMARY KEY(id),
   CONSTRAINT author FOREIGN KEY (author_id) REFERENCES authors(id)
 );
 
 CREATE TABLE ratings (
-  author_id INTEGER,
-  book_id INTEGER,
+  author_id INTEGER NOT NULL,
+  book_id INTEGER NOT NULL,
   stars INTEGER,
+  CONSTRAINT author1 FOREIGN KEY (author_id) REFERENCES authors(id),
+  CONSTRAINT book1 FOREIGN KEY (book_id) REFERENCES books(id),
   CONSTRAINT ratings_pkey PRIMARY KEY(author_id, book_id),
   CONSTRAINT ratings_stars_key UNIQUE(stars)
 );
