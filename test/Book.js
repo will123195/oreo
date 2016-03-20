@@ -17,7 +17,8 @@ module.exports = Book
 
 // 'use strict';
 // module.exports = class Book {
-//   constructor () {
+//   constructor (data) {
+//     delete data.something
 //     this.getTitle2 = function () {
 //       return this.title
 //     }

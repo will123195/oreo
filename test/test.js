@@ -308,21 +308,6 @@ describe('oreo', function() {
       }).catch(showError)
     })
 
-    it('should modify data in constructor', function(done) {
-      db.books.get(1).then(function(book) {
-        ok(typeof book.something === 'undefined', 'did not run constructor')
-        done()
-      }).catch(showError)
-    })
-
-    it('should get correct object name', function(done) {
-      db.books.get(1).then(function(book) {
-        ok(book instanceof db.books.Row, 'incorrect type')
-        ok(book.constructor.name === 'Book', 'incorrect name')
-        done()
-      }).catch(showError)
-    })
-
     it('should mget - cb', function(done) {
       db.authors.mget([1, 1984], function(err, authors) {
         no(err)
@@ -731,12 +716,13 @@ describe('oreo', function() {
       }).catch(showError)
     })
 
-    it('should instantiate model - cb', function(done) {
+    it('should instantiate model and use constructor - cb', function(done) {
       db.books.get(1, function(err, book) {
         no(err)
-        ok(book.constructor.name === 'Book', 'did not instantiate Book')
+        ok(book instanceof db.books.Row, 'incorrect type')
         ok(book.getTitle() === book.title, 'did not get title')
         ok(book.getTitle2() === book.title, 'did not run model constructor')
+        ok(typeof book.something === 'undefined', 'did not modify data in constructor')
         done()
       })
     })
@@ -1021,41 +1007,42 @@ describe('oreo', function() {
       })
     })
 
-    // it('should populate linking table keys', function(done) {
-    //   var newAuthor = {
-    //     name: 'Chuck Palahniuk',
-    //     ratings: [
-    //       {
-    //         stars: 5,
-    //         book: { title: 'Fight Club' }
-    //       },
-    //       {
-    //         stars: 4,
-    //         book: { title: 'Choke' }
-    //       }
-    //     ]
-    //   }
-    //   db.authors.save(newAuthor, function(err, author) {
-    //     no(err)
-    //     ok(!!author.id, 'did not insert author')
-    //     ok(author.name === newAuthor.name, 'wrong author.name')
-    //     var property = 'ratings'
-    //     author.hydrate([property], function(err) {
-    //       no(err)
-    //       ok(!!author[property], 'did not hydrate')
-    //       ok(author[property].length === newAuthor[property].length, 'wrong qty')
-    //       var rating = author[property][0]
-    //       console.log('rating:', rating)
-    //       rating.hydrate('book', function(err) {
-    //         var book = rating.book
-    //         console.log('book:', book)
-    //         ok(book.author_id === author.id, 'did not save book.author_id')
-    //         ok(book.title === newAuthor.ratings[0].book.title, 'wrong title')
-    //         done()
-    //       })
-    //     })
-    //   })
-    // })
+    it('TODO should populate linking table keys', function(done) {
+      return done()
+      var newAuthor = {
+        name: 'Chuck Palahniuk',
+        ratings: [
+          {
+            stars: 5,
+            book: { title: 'Fight Club' }
+          },
+          {
+            stars: 4,
+            book: { title: 'Choke' }
+          }
+        ]
+      }
+      db.authors.save(newAuthor, function(err, author) {
+        no(err)
+        ok(!!author.id, 'did not insert author')
+        ok(author.name === newAuthor.name, 'wrong author.name')
+        var property = 'ratings'
+        author.hydrate([property], function(err) {
+          no(err)
+          ok(!!author[property], 'did not hydrate')
+          ok(author[property].length === newAuthor[property].length, 'wrong qty')
+          var rating = author[property][0]
+          console.log('rating:', rating)
+          rating.hydrate('book', function(err) {
+            var book = rating.book
+            console.log('book:', book)
+            ok(book.author_id === author.id, 'did not save book.author_id')
+            ok(book.title === newAuthor.ratings[0].book.title, 'wrong title')
+            done()
+          })
+        })
+      })
+    })
 
     // TODO:
     // save rows of the same table in parallel
@@ -1063,7 +1050,6 @@ describe('oreo', function() {
     // should not allow updating foreign key value(s) in a 1-to-1 nested save
     // should not allow updating a 1-to-m row if primary key is specified and fk doesn't match this.pk
     // should not allow updating a 1-to-1 row if primary key is specified and pk not match this.ftbl_id
-    // more nested save tests
     // composite primary key insert / update
     // primary key id is specified for insert
     // table has no primary key
@@ -1073,7 +1059,6 @@ describe('oreo', function() {
     // failed transactions rollback as expected saving 1-to-1 and 1-to-m
     // 1-to-1 and 1-to-m unmodified values should not be updated
     // uncaught error when trying to save to a 1-to-m that exists but linked to a different table
-    // Row constructor can modify the data
 
     it('should kill the connection pool', function (done) {
       var isDone = false
