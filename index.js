@@ -63,6 +63,11 @@ var oreo = module.exports = function oreo(opts, cb) {
     self._opts.pass = '***************' // obfuscate the password
     self.execute = self._query.execute.bind(self._query)
     self.executeWrite = self._query.executeWrite.bind(self._query)
+    if (opts.schema) {
+      return self.discover({
+        fromCache: true
+      }, cb)
+    }
     self.discover(cb)
   })
 
@@ -85,22 +90,37 @@ var oreo = module.exports = function oreo(opts, cb) {
 /**
  * [discover description]
  */
-oreo.prototype.discover = function(cb) {
+oreo.prototype.discover = function(opts, cb) {
   var sql
   var self = this
   self._tables = []
 
+  opts = opts || {}
+  if (typeof opts === 'function') {
+    cb = opts
+    opts = {}
+  }
   cb = cb || self._promiseResolver()
 
-  // get the tables
-  self._platform.getTables(function(err, tables) {
+  // get the tables from db or cache
+  var getTables = self._platform.getTables.bind(self._platform)
+  if (opts.fromCache) {
+    getTables = function (cb) {
+      return cb(null, Object.keys(self._opts.schema))
+    }
+  }
+  getTables(function(err, tables) {
     if (err) return cb(err)
 
     // for each table
-    async.each(tables, function(table_name, callback) {
-      self._tables.push(table_name)
+    async.each(tables, function(tableName, done) {
+      self._tables.push(tableName)
       // create a table object
-      self[table_name] = new Table(table_name, self, callback)
+      self[tableName] = new Table({
+        tableName: tableName,
+        db: self,
+        fromCache: opts.fromCache
+      }, done)
 
     }, function(err) {
       if (err) return cb(err)

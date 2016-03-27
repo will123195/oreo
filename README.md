@@ -96,7 +96,8 @@ var db = oreo({
   memoize: 150, // optional duration in ms to memoize rows
   cache: redisClient, // optional
   Promise: Promise, // optional, default: global.Promise
-  models: {} // optional
+  models: {}, // optional
+  schema: {} // optional skips auto-detect schema
 }).onReady(runExampleQueries)
 
 function runExampleQueries () {
@@ -220,6 +221,7 @@ Instantiates the `db` object and configures the database connection string(s).
     - **cache** {Object} *(optional, default `false`)* object with `get(key)` and/or `set(key, val)` methods (i.e. redis) to cache full rows (indefinitely). Cached rows are recached after `save()`/`insert()`/`update()`/`delete()`. The [Table functions](#table) fetch rows from the cache (and only fetch from sql the rows that are not cached).
     - **Promise** {Object} *(optional, default `global.Promise`)* You may plug in your own Promise library that is compatible with native promises, i.e. `Promise: require('bluebird')`. Then a promise will be returned if a callback is not specified.
     - **models** {Object} *(optional)* each table may have a model "class" specified which will be used to instantiate rows from that table. For example, `models.my_table = class MyTable {}`
+    - **schema** {Object} *(optional)* initialize oreo faster by specifying the schema, for example `JSON.parse(JSON.stringify(db))`
 - **cb** {Function} *(optional)* callback(err)
 
 ```js

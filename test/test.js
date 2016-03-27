@@ -105,7 +105,7 @@ describe('oreo', function() {
     it('should rediscover and end - promise', function(done) {
       db.discover().then(function(db) {
         ok(!!db.authors, 'authors not discovered')
-        config.schema = JSON.stringify(db)
+        config.schema = JSON.parse(JSON.stringify(db))
         db.authors.find().then(function () {
           var isDone = false
           db.end(function () {
@@ -1007,8 +1007,7 @@ describe('oreo', function() {
       })
     })
 
-    it('TODO should populate linking table keys', function(done) {
-      return done()
+    xit('TODO should populate linking table keys', function(done) {
       var newAuthor = {
         name: 'Chuck Palahniuk',
         ratings: [
