@@ -236,7 +236,8 @@ var db = oreo({
   //memoize: 0,
   //cache: null,
   //Promise: global.Promise
-  //models: {}
+  //models: {},
+  //schema: {}
 }, function (err) {
   db.execute('select now() as now', function (err, rs) {
     console.log('now:', rs[0].now)
