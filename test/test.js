@@ -220,39 +220,39 @@ describe('oreo', function() {
     it('should save field with same name as 1-to-1 fk - cb', function(done) {
       db.authors.save({
         id: 2,
-        country: {
-          code: 'US',
+        Country: {
+          Code: 'US',
           name: 'United States'
         }
       }, function(err, author) {
         no(err)
-        ok(author.country === 'US', 'author.country')
+        ok(author.Country === 'US', 'author.Country')
         db.authors.get(2, function(err, author) {
           no(err)
-          ok(author.country === 'US', 'did not save author.country')
-          author.hydrate('country', function (err) {
+          ok(author.Country === 'US', 'did not save author.Country')
+          author.hydrate('Country', function (err) {
             no(err)
-            ok(author.country.name === 'United States', 'author.country.name')
-            author.country.update({
+            ok(author.Country.name === 'United States', 'author.Country.name')
+            author.Country.update({
               name: 'USA'
-            }, function (err, country) {
+            }, function (err, Country) {
               no(err)
-              ok(country.name === 'USA', 'country.name not USA')
+              ok(Country.name === 'USA', 'Country.name not USA')
               author.update({
-                country: {
-                  code: 'CA',
+                Country: {
+                  Code: 'CA',
                   name: 'Canada'
                 }
               }, function (err, author) {
                 no(err)
-                ok(author.country === 'CA', 'author.country not CA')
+                ok(author.Country === 'CA', 'author.Country not CA')
                 author.update({
-                  country: 'MX'
+                  Country: 'MX'
                 }, function (err, author) {
                   ok(!!err, 'should violate fk constraint')
                   db.authors.get(2, function (err, author) {
                     no(err)
-                    ok(author.country === 'CA', 'author.country should still be CA')
+                    ok(author.Country === 'CA', 'author.Country should still be CA')
                     done()
                   })
                 })
@@ -348,6 +348,7 @@ describe('oreo', function() {
     it('should find all - cb', function(done) {
       db.authors.find(function(err, authors) {
         no(err)
+        console.log('authors:', authors)
         ok(authors.length === 4, 'authors.length')
         done()
       })
@@ -366,6 +367,18 @@ describe('oreo', function() {
       }, function(err, authors) {
         no(err)
         ok(authors[0].id === 1, 'did not find author')
+        done()
+      })
+    })
+
+    it('should find (case-sensitive)', function(done) {
+      db.authors.find({
+        where: {
+          Country: 'CA'
+        }
+      }, function(err, authors) {
+        no(err)
+        ok(authors[0].id === 2, 'did not find author')
         done()
       })
     })
@@ -914,8 +927,8 @@ describe('oreo', function() {
         title: 'my title',
         author: {
           name: 'Author #3',
-          country: {
-            code: 'US',
+          Country: {
+            Code: 'US',
             name: 'United States'
           }
         }
@@ -924,9 +937,9 @@ describe('oreo', function() {
         no(err)
         book.hydrate('author', function(err) {
           no(err)
-          book.author.hydrate('country', function(err) {
+          book.author.hydrate('Country', function(err) {
             no(err)
-            ok(book.author.country.name === 'United States', 'did not save')
+            ok(book.author.Country.name === 'United States', 'did not save')
             done()
           })
         })

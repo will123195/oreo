@@ -4,23 +4,23 @@ DROP TABLE IF EXISTS battles CASCADE;
 DROP TABLE IF EXISTS samples CASCADE;
 DROP TABLE IF EXISTS books CASCADE;
 DROP TABLE IF EXISTS authors CASCADE;
-DROP TABLE IF EXISTS countries CASCADE;
+DROP TABLE IF EXISTS Countries CASCADE;
 DROP TABLE IF EXISTS ratings CASCADE;
 
 
-CREATE TABLE countries (
-  code VARCHAR(2),
+CREATE TABLE Countries (
+  Code VARCHAR(2),
   name TEXT,
-  CONSTRAINT countries_pkey PRIMARY KEY(code)
+  CONSTRAINT countries_pkey PRIMARY KEY(Code)
 );
 
 CREATE TABLE authors (
   id INTEGER AUTO_INCREMENT,
   name TEXT,
   books TEXT,
-  country VARCHAR(2),
+  Country VARCHAR(2),
   CONSTRAINT authors_pkey PRIMARY KEY(id),
-  CONSTRAINT country FOREIGN KEY (country) REFERENCES countries(code)
+  CONSTRAINT Country FOREIGN KEY (Country) REFERENCES Countries(Code)
 );
 
 CREATE TABLE books (

@@ -1,24 +1,24 @@
 DROP TABLE IF EXISTS authors CASCADE;
 DROP TABLE IF EXISTS battles CASCADE;
 DROP TABLE IF EXISTS books CASCADE;
-DROP TABLE IF EXISTS countries CASCADE;
+DROP TABLE IF EXISTS "Countries" CASCADE;
 DROP TABLE IF EXISTS ratings CASCADE;
 DROP TABLE IF EXISTS samples CASCADE;
 
 
-CREATE TABLE countries (
-  code VARCHAR,
+CREATE TABLE "Countries" (
+  "Code" VARCHAR,
   name VARCHAR,
-  CONSTRAINT countries_pkey PRIMARY KEY(code)
+  CONSTRAINT "countriesPkey" PRIMARY KEY("Code")
 );
 
 CREATE TABLE authors (
   id SERIAL,
   name VARCHAR,
   books INTEGER[],
-  country VARCHAR,
+  "Country" VARCHAR,
   CONSTRAINT authors_pkey PRIMARY KEY(id),
-  CONSTRAINT country FOREIGN KEY (country) REFERENCES countries(code)
+  CONSTRAINT "Country" FOREIGN KEY ("Country") REFERENCES "Countries"("Code")
 );
 
 CREATE TABLE books (
