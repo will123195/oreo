@@ -1,5 +1,7 @@
+var hide = require('../lib/hideProperty')
+
 var Book = function Book (data) {
-  delete data.something
+  hide(data, 'something')
   this.getTitle2 = function () {
     return this.title
   }

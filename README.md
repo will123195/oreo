@@ -5,7 +5,7 @@
 
 # Features
 
-- Zero configuration -- auto-detects columns, primary keys and foreign keys
+- Auto-detects tables, columns, primary keys and foreign keys
 - Saves multi-table nested objects with an atomic transaction
 - Detects primary and read-only hosts
 - Use callbacks or plug in your own Promise library
@@ -30,7 +30,7 @@ npm install pg
 var oreo = require('oreo')
 
 var db = oreo({
-  driver: 'mysql',
+  driver: 'pg',
   hosts: ['localhost'],
   name: 'my_db',
   user: 'root',

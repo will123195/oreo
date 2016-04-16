@@ -348,7 +348,6 @@ describe('oreo', function() {
     it('should find all - cb', function(done) {
       db.authors.find(function(err, authors) {
         no(err)
-        console.log('authors:', authors)
         ok(authors.length === 4, 'authors.length')
         done()
       })
@@ -735,7 +734,8 @@ describe('oreo', function() {
         ok(book instanceof db.books.Row, 'incorrect type')
         ok(book.getTitle() === book.title, 'did not get title')
         ok(book.getTitle2() === book.title, 'did not run model constructor')
-        ok(typeof book.something === 'undefined', 'did not modify data in constructor')
+        var desc = Object.getOwnPropertyDescriptor(book, 'something')
+        ok(!desc.enumerable, 'did not modify data in constructor')
         done()
       })
     })
