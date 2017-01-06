@@ -1020,6 +1020,14 @@ describe('oreo', function() {
       })
     })
 
+    it('should propagate errors', function() {
+      return db.books.find().then(function (books) {
+        console.log('ReferenceError', undefinedVariable)
+      }).catch(function (err) {
+        ok(!!err, 'should propogate error')
+      })
+    })
+
     xit('TODO should populate linking table keys', function(done) {
       var newAuthor = {
         name: 'Chuck Palahniuk',
