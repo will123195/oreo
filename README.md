@@ -7,7 +7,7 @@
 
 - Auto-detects tables, columns, primary keys and foreign keys
 - Saves multi-table nested objects with an atomic transaction
-- Detects primary and read-only hosts
+- Detects primary and read-only hosts (from specified list of hosts)
 - Use callbacks or plug in your own Promise library
 - No dependencies
 
@@ -35,10 +35,11 @@ var db = oreo({
   name: 'my_db',
   user: 'root',
   pass: ''
-}, function (err) {
+}, (err) => {
   // Assuming you have a table "artists"
   // Get an artist by primary key
-  db.artists.get(id, function (err, artist) {
+  return db.artists.get(id)
+  .then(artist => {
     console.log(artist)
   })
 }
@@ -112,39 +113,46 @@ function runExampleQueries () {
       { stars: 5, body: 'Psychadelic!'},
       { stars: 4, body: 'Bizarre, unpredictable yet strangely alluring.'}
     ]
-  }).then(function (book) {
+  })
+  .then(book => {
     console.log(book) // { id: 1, title: Fear and Loathing in Las Vegas, author_id: 1 }
 
     // Hydrate a book's author (1-to-1 linked row)
-    book.hydrate('author').then(function () {
+    book.hydrate('author')
+    .then(() => {
       console.log(book.author) // { id: 1, name: Hunter S. Thompson }
     })
 
     // Hydrate a book's reviews (1-to-many linked rows)
-    book.hydrate('reviews').then(function () {
+    book.hydrate('reviews')
+    .then(() => {
       console.log(book.reviews) // array
     })
 
     // Update a book
     book.update({
       title: 'The Rum Diary'
-    }).then(function (book) {
+    })
+    .then(book => {
       console.log(book) // { id: 1, title: The Rum Diary, author_id: 1 }
     })
 
     // Delete a book
-    book.delete().then(function () {
+    book.delete()
+    .then(() => {
       console.log(book) // {}
     })
   })
 
   // Get an author by primary key
-  db.authors.get(1).then(function (author) {
+  db.authors.get(1)
+  .then(author => {
     console.log(author) // { id: 1, name: Hunter S. Thompson }
   })
 
   // Get multiple authors by primary key
-  db.authors.mget([1]).then(function (authors) {
+  db.authors.mget([1])
+  .then(authors => {
     console.log(authors) // [ { id: 1, name: Hunter S. Thompson } ]
   })
 
@@ -157,7 +165,8 @@ function runExampleQueries () {
     limit: 10,
     offset: 0
     }
-  }).then(function (authors) {
+  })
+  .then(authors => {
     console.log(authors) // [ { id: 1, name: Hunter S. Thompson } ]
   })
 
@@ -166,7 +175,8 @@ function runExampleQueries () {
     where: [
       "name like 'Hunter %'"
     ]
-  }).then(function (author) {
+  })
+  .then(author => {
     console.log(author) // { id: 1, name: Hunter S. Thompson }
   })
 }
@@ -239,8 +249,9 @@ var db = oreo({
   //models: {},
   //schema: {}
 }, function (err) {
-  db.execute('select now() as now', function (err, rs) {
-    console.log('now:', rs[0].now)
+  db.execute('select now() as now')
+  .then(rows => {
+    console.log('now:', rows[0].now)
   })
 })
 ```
@@ -263,8 +274,9 @@ Executes an arbitrary SQL query.
 db.execute([
   'select now()', // arrays can be used for es5 multi-line convenience
   'as now'
-], function (err, rs) {
-  console.log(rs[0]) // 2014-06-24 21:03:08.652861-04
+])
+.then(rows => {
+  console.log(rows[0]) // 2014-06-24 21:03:08.652861-04
 })
 ```
 
@@ -276,20 +288,13 @@ db.execute(`
   where name = :name
 `, {
   name: 'Jack Kerouac',
-}, function (err, rows) {
+})
+.then(rows => {
   console.log(rows[0].id) // 1
 })
-```
+.catch(err => {
 
-If no callback is provided a Promise is returned:
-```js
-db.execute('select now()')
-  .then(function (rows) {
-
-  })
-  .catch(function (err) {
-
-  })
+})
 ```
 
 <a name="executeWrite" />
@@ -305,13 +310,14 @@ Queues a function to be called when oreo's schema detection is complete (i.e. wh
 - **cb** {Function} callback()
 
 ```js
-var db = oreo(config, function (err) {
+var db = oreo(config, (err) => {
   if (err) return console.log(err)
   console.log('Ready!')
-}).onReady(function () {
+})
+.onReady(() => {
   console.log('onReady #1')
 })
-db.onReady(function () {
+db.onReady(() => {
   console.log('onReady #2')
 })
 
@@ -351,7 +357,7 @@ db.authors.find({
   offset: 5,
   limit: 5,
   hydrate: ['books']
-}, function (err, authors) {
+}).then(authors => {
   console.log(authors)
   // [ { id: 1, name: Jack Kerouac, books: [ { id: 1, title: On the Road, author_id: 1 } ] } ]
 })
@@ -401,7 +407,8 @@ db.authors.findOne({
   where: [ "name like 'Jack%'" ],
   order: 'name asc',
   offset: 5
-}, function (err, author) {
+})
+.then(author => {
   console.log(author.id) // 1
 })
 ```
@@ -418,7 +425,8 @@ Gets a row by primary key.
 
 ```js
 var primaryKey = 1 // var primaryKey = { id: 1 } // this also works
-db.authors.get(primaryKey, function (err, author) {
+db.authors.get(primaryKey)
+.then(author => {
   console.log(author) // { id: 1, name: Jack Kerouak }
 })
 ```
@@ -429,7 +437,8 @@ var primaryKey = {
   company: 'Cogswell Cogs',
   part_no: 'A-12345'
 }
-db.parts.get(primaryKey, function (err, part) {
+db.parts.get(primaryKey)
+.then(part => {
   console.log(part) // { company: Cogswell Cogs, part_no: A-12345, price: 9.99, in_stock: true }
 })
 ```
@@ -446,9 +455,9 @@ Inserts a new row.
 db.books.insert({
   title: 'On the Road',
   author_id: 1
-}, function (err, book) {
-  console.log(book)
-  // { id: 1, title: On the Road, author_id: 1 }
+})
+.then(book => {
+  console.log(book) // { id: 1, title: On the Road, author_id: 1 }
 })
 ```
 
@@ -463,9 +472,9 @@ db.books.insert({
     { stars: 5, body: 'Psychadelic!'},
     { stars: 4, body: 'Bizarre, unpredictable yet strangely alluring.'}
   ]
-}, function (err, book) {
-  console.log(book)
-  // { id: 1, title: On the Road, author_id: 1 }
+})
+.then(book => {
+  console.log(book) // { id: 1, title: On the Road, author_id: 1 }
 })
 ```
 
@@ -483,9 +492,9 @@ Gets many rows by primary key in the specified order. A `null` value will be ret
 
 ```js
 var bookIds = [1]
-db.books.mget(bookIds, function (err, books) {
-  console.log(books)
-  // [ { id: 1, title: On the Road, author_id: 1 } ]
+db.books.mget(bookIds)
+.then(books => {
+  console.log(books) // [ { id: 1, title: On the Road, author_id: 1 } ]
 })
 ```
 
@@ -502,9 +511,9 @@ var formPOST = {
   id: 1,
   title: 'New Title'
 }
-db.books.save(formPOST, function (err, book) {
-  console.log(book)
-  // { id: 1, title: New Title, author_id: 1 }
+db.books.save(formPOST)
+.then(book => {
+  console.log(book) // { id: 1, title: New Title, author_id: 1 }
 })
 ```
 
@@ -518,9 +527,9 @@ Deletes an existing row from the database.
 - **cb** {Function} *(optional)* callback(err) If *cb* is not provided, a Promise is returned.
 
 ```js
-book.delete(function (err) {
-  console.log(book)
-  // {}
+book.delete()
+.then(() => {
+  console.log(book) // {}
 })
 ```
 
@@ -535,20 +544,20 @@ Hydrates the row(s) linked with the specified foreign key(s) and/or foreign tabl
 - **cb** {Function} *(optional)* callback(err) If *cb* is not provided, a Promise is returned.
 
 ```js
-db.books.get(1, function (err, book) {
-  console.log(book)
-  // { id: 1, title: On the Road, author_id: 1 }
+db.books.get(1)
+.then(book => {
+  console.log(book) // { id: 1, title: On the Road, author_id: 1 }
 
   // hydrate a 1-to-1 linked row
-  book.hydrate('author', function (err) {
-    console.log(book.author)
-    // { id: 1, name: Jack Kerouac }
+  book.hydrate('author')
+  .then(() => {
+    console.log(book.author) // { id: 1, name: Jack Kerouac }
   })
 
   // hydrate 1-to-many linked rows
-  book.hydrate('reviews', function (err) {
-    console.log(book.reviews)
-    // [ { stars: 5, body: 'Psychadelic!' }, { stars: 4, body: 'Bizarre...' } ]
+  book.hydrate('reviews')
+  .then(() => {
+    console.log(book.reviews) // [ { stars: 5, body: 'Psychadelic!' }, { stars: 4, body: 'Bizarre...' } ]
   })
 })
 ```
@@ -559,9 +568,9 @@ For example, a book has one author, so we have a table `books` with a column `au
 
 ```js
 // 1-to-1
-book.hydrate('author', function (err) {
-  console.log(book.author)
-  // { id: 1, name: Jack Kerouac }
+book.hydrate('author')
+.then(() => {
+  console.log(book.author) // { id: 1, name: Jack Kerouac }
 })
 ```
 
@@ -571,13 +580,15 @@ For example, a book has many reviews, so we have a table `reviews` with a column
 
 ```js
 // 1-to-many (fully qualified notation)
-book.hydrate('book:reviews', function (err) {
+book.hydrate('book:reviews')
+.then(() => {
   console.log(book['book:reviews'])
   // [ { stars: 5, body: 'Psychadelic!' }, { stars: 4, body: 'Bizarre...' } ]
 })
 
 // 1-to-many (shorthand notation)
-book.hydrate('reviews', function (err) {
+book.hydrate('reviews')
+.then(() => {
   console.log(book.reviews)
   // [ { stars: 5, body: 'Psychadelic!' }, { stars: 4, body: 'Bizarre...' } ]
 })
@@ -586,7 +597,8 @@ book.hydrate('reviews', function (err) {
 Hydrate multiple properties in parallel:
 
 ```js
-book.hydrate(['author', 'reviews'], function (err) {
+book.hydrate(['author', 'reviews'])
+.then(() => {
   console.log(book)
   // {
   //   id: 1,
@@ -606,13 +618,12 @@ Saves the modified property values to the database (and saves linked rows recurs
 - **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.
 
 ```js
-db.books.get(1, function (err, book) {
-  console.log(book)
-  // { id: 1, title: On the Road, author_id: 1 }
+db.books.get(1)
+.then(book => {
+  console.log(book) // { id: 1, title: On the Road, author_id: 1 }
   book.author_id = 2
   book.save(function (err, book) {
-    console.log(book)
-    // { id: 1, title: On the Road, author_id: 2 }
+    console.log(book) // { id: 1, title: On the Road, author_id: 2 }
   })
 })
 ```
@@ -625,15 +636,18 @@ Modifies multiple property values but does NOT save to the db.
 - **data** {Object} the data to modify
 
 ```js
-db.books.get(1, function (err, book) {
-  console.log(book)
-  // { id: 1, title: On the Road, author_id: 1 }
+db.books.get(1)
+.then(book => {
+  console.log(book) // { id: 1, title: On the Road, author_id: 1 }
+
   book.set({
     title: 'New Title',
     author_id: 2
   })
-  book.save(function (err, book) {
 
+  book.save()
+  .then(book => {
+    console.log(book) // { id: 1, title: New Title, author_id: 2 }
   })
 })
 ```
@@ -649,9 +663,9 @@ Updates an existing row. A convenience method for `set()` then `save()`.
 ```js
 book.update({
   title: 'New Title'
-}, function (err, book) {
-  console.log(book)
-  // { id: 1, title: New Title, author_id: 1 }
+})
+.then(book => {
+  console.log(book) // { id: 1, title: New Title, author_id: 1 }
 })
 ```
 

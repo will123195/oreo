@@ -15,6 +15,9 @@ var oreo = module.exports = function oreo(opts, cb) {
     return new oreo(opts, cb)
   }
 
+  opts = opts || {}
+  cb = cb || function () {}
+
   var self = this
 
   // use _ prefix to avoid conflict with table names
@@ -35,8 +38,6 @@ var oreo = module.exports = function oreo(opts, cb) {
   self._Promise = opts.Promise
   self._promiseResolver = promiseResolver
   self._memo = {} // memoized query results
-
-  cb = cb || function () {}
 
   if (supportedDrivers.indexOf(opts.driver) === -1) {
     return cb(new Error('"' + opts.driver + '" is not a supported driver.'))
