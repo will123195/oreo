@@ -311,7 +311,6 @@ Queues a function to be called when oreo's schema detection is complete (i.e. wh
 
 ```js
 var db = oreo(config, (err) => {
-  if (err) return console.log(err)
   console.log('Ready!')
 })
 .onReady(() => {
@@ -622,7 +621,8 @@ db.books.get(1)
 .then(book => {
   console.log(book) // { id: 1, title: On the Road, author_id: 1 }
   book.author_id = 2
-  book.save(function (err, book) {
+  book.save()
+  .then(book => {
     console.log(book) // { id: 1, title: On the Road, author_id: 2 }
   })
 })
