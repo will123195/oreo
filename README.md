@@ -27,9 +27,9 @@ npm install pg
 # Quick Example
 
 ```js
-var oreo = require('oreo')
+const oreo = require('oreo')
 
-var db = oreo({
+const db = oreo({
   driver: 'pg',
   hosts: ['localhost'],
   name: 'my_db',
@@ -38,7 +38,7 @@ var db = oreo({
 }, (err) => {
   // Assuming you have a table "artists"
   // Get an artist by primary key
-  return db.artists.get(id)
+  db.artists.get(id)
   .then(artist => {
     console.log(artist)
   })
@@ -84,10 +84,10 @@ var db = oreo({
 &dagger; see the example database schema below
 
 ```js
-var oreo = require('oreo')
+const oreo = require('oreo')
 
 // initialize oreo: auto-detects the schema and determines writable/read-only hosts
-var db = oreo({
+const db = oreo({
   driver: 'pg',
   hosts: ['localhost:5432'],
   name: 'my_db',
@@ -235,8 +235,8 @@ Instantiates the `db` object and configures the database connection string(s).
 - **cb** {Function} *(optional)* callback(err)
 
 ```js
-var oreo = require('oreo')
-var db = oreo({
+const oreo = require('oreo')
+const db = oreo({
   driver: 'pg',
   hosts: ['localhost:5432'],
   name: 'database',
@@ -310,7 +310,7 @@ Queues a function to be called when oreo's schema detection is complete (i.e. wh
 - **cb** {Function} callback()
 
 ```js
-var db = oreo(config, (err) => {
+const db = oreo(config, (err) => {
   console.log('Ready!')
 })
 .onReady(() => {
@@ -423,7 +423,7 @@ Gets a row by primary key.
 - **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.
 
 ```js
-var primaryKey = 1 // var primaryKey = { id: 1 } // this also works
+const primaryKey = 1 // const primaryKey = { id: 1 } // this also works
 db.authors.get(primaryKey)
 .then(author => {
   console.log(author) // { id: 1, name: Jack Kerouak }
@@ -432,7 +432,7 @@ db.authors.get(primaryKey)
 
 Multi-column (composite) primary key:
 ```js
-var primaryKey = {
+const primaryKey = {
   company: 'Cogswell Cogs',
   part_no: 'A-12345'
 }
@@ -490,7 +490,7 @@ Gets many rows by primary key in the specified order. A `null` value will be ret
 - **cb** {Function} *(optional)* callback(err, rows) If *cb* is not provided, a Promise is returned.
 
 ```js
-var bookIds = [1]
+const bookIds = [1]
 db.books.mget(bookIds)
 .then(books => {
   console.log(books) // [ { id: 1, title: On the Road, author_id: 1 } ]
@@ -506,7 +506,7 @@ Inserts or updates depending on whether the primary key exists in the db.
 - **cb** {Function} *(optional)* callback(err, row) If *cb* is not provided, a Promise is returned.
 
 ```js
-var formPOST = {
+const formPOST = {
   id: 1,
   title: 'New Title'
 }
