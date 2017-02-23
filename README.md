@@ -19,9 +19,7 @@
 # Installation
 
 ```bash
-npm install oreo
-npm install pg
-#npm install mysql
+npm i oreo pg mysql
 ```
 
 # Quick Example
