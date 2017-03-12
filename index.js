@@ -113,6 +113,8 @@ oreo.prototype.discover = function(opts, cb) {
   getTables(function(err, tables) {
     if (err) return cb(err)
 
+    tables.sort()
+
     // for each table
     async.each(tables, function(tableName, done) {
       self._tables.push(tableName)
