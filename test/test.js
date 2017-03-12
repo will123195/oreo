@@ -360,6 +360,13 @@ describe('oreo', function() {
       }).catch(showError)
     })
 
+    it('should count - promise', function(done) {
+      db.authors.count().then(function(count) {
+        ok(count === 4, 'count')
+        done()
+      }).catch(showError)
+    })
+
     it('should find (where string)', function(done) {
       db.authors.find({
         where: "name = 'Jack Kerouac'"

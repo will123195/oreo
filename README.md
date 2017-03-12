@@ -60,6 +60,7 @@ const db = oreo({
 
 ## Table
 
+* [`count`](#count)
 * [`find`](#find)
 * [`findOne`](#findOne)
 * [`get`](#get)
@@ -333,6 +334,27 @@ Closes the db connection(s).
 
 # Table
 
+<a name="count" />
+## db.***table***.count( [opts], [cb] )
+
+Counts the number of rows matching the specified criteria.
+
+- **opts** {Object} *(optional)* options
+    - **where** {String|Array|Object} the where clause criteria
+    - **params** {Object} key/value pairs to be substituted for `:key` patterns in the query
+- **cb** {Function} *(optional)* callback(err, rows) If *cb* is not provided, a Promise is returned.
+
+```js
+db.authors.count({
+  where: {
+    name: 'Jack'
+  }
+})
+.then(count => {
+  console.log(count) // 1
+})
+```
+
 <a name="find" />
 ## db.***table***.find( [opts], [cb] )
 
@@ -354,7 +376,8 @@ db.authors.find({
   offset: 5,
   limit: 5,
   hydrate: ['books']
-}).then(authors => {
+})
+.then(authors => {
   console.log(authors)
   // [ { id: 1, name: Jack Kerouac, books: [ { id: 1, title: On the Road, author_id: 1 } ] } ]
 })
