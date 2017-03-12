@@ -308,6 +308,27 @@ describe('oreo', function() {
       }).catch(showError)
     })
 
+
+    it('should get id=0 - promise', function (done) {
+      if (config.driver === 'mysql') {
+        return done()
+      }
+      db.authors.insert({
+        id: 0,
+        name: 'Nobody'
+      })
+      .then(function (author) {
+        db.authors.get(0)
+        .then(function (author) {
+          ok(author.id === 0, 'did not get author')
+          author.delete()
+          .then(function () {
+            done()
+          })
+        })
+      })
+    })
+
     it('should mget - cb', function(done) {
       db.authors.mget([1, 1984], function(err, authors) {
         no(err)
@@ -733,6 +754,16 @@ describe('oreo', function() {
           })
         })
       }).catch(showError)
+    })
+
+    xit('should error when calling save(data)', function(done) {
+      db.authors.get(1, function(err, author) {
+        no(err)
+        author.save({ name: 'Jack2' }, function(err, author) {
+          ok(!!err, err)
+          done()
+        })
+      })
     })
 
     it('should instantiate model and use constructor - cb', function(done) {
