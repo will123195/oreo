@@ -215,6 +215,7 @@ CREATE TABLE reviews (
 # Usage
 
 <a name="instantiate" />
+
 ## oreo( opts, [cb] )
 
 Instantiates the `db` object and configures the database connection string(s).
@@ -258,6 +259,7 @@ const db = oreo({
 # Db
 
 <a name="execute" />
+
 ## db.execute( sql, [data], [opts], [cb] )
 
 Executes an arbitrary SQL query.
@@ -297,11 +299,13 @@ db.execute(`
 ```
 
 <a name="executeWrite" />
+
 ## db.executeWrite( sql, [data], [opts], [cb] )
 
 Same as [`execute`](#execute) but executes the query on a writable (primary) host.
 
 <a name="onReady" />
+
 ## db.onReady( cb )
 
 Queues a function to be called when oreo's schema detection is complete (i.e. when oreo is initialized).
@@ -328,6 +332,7 @@ Ready!
 ```
 
 <a name="end" />
+
 ## db.end( [cb] )
 
 Closes the db connection(s).
@@ -335,6 +340,7 @@ Closes the db connection(s).
 # Table
 
 <a name="count" />
+
 ## db.***table***.count( [opts], [cb] )
 
 Counts the number of rows matching the specified criteria.
@@ -356,6 +362,7 @@ db.authors.count({
 ```
 
 <a name="find" />
+
 ## db.***table***.find( [opts], [cb] )
 
 Finds multiple rows.
@@ -415,6 +422,7 @@ The `where` option has several valid formats:
     ```
 
 <a name="findOne" />
+
 ## db.***table***.findOne( opts, [cb] )
 
 Finds exactly one row.
@@ -434,6 +442,7 @@ db.authors.findOne({
 ```
 
 <a name="get" />
+
 ## db.***table***.get( primaryKey, [opts], [cb] )
 
 Gets a row by primary key.
@@ -464,6 +473,7 @@ db.parts.get(primaryKey)
 ```
 
 <a name="insert" />
+
 ## db.***table***.insert( data, [cb] )
 
 Inserts a new row.
@@ -501,6 +511,7 @@ db.books.insert({
 See also: [`hydrate`](#hydrate)
 
 <a name="mget" />
+
 ## db.***table***.mget( primaryKeys, [opts], [cb] )
 
 Gets many rows by primary key in the specified order. A `null` value will be returned for each primary key that does not exist.
@@ -519,6 +530,7 @@ db.books.mget(bookIds)
 ```
 
 <a name="table_save" />
+
 ## db.***table***.save( data, [cb] )
 
 Inserts or updates depending on whether the primary key exists in the db.
@@ -540,6 +552,7 @@ db.books.save(formPOST)
 # Row
 
 <a name="delete" />
+
 ## row.delete( [cb] )
 
 Deletes an existing row from the database.
@@ -554,6 +567,7 @@ book.delete()
 ```
 
 <a name="hydrate" />
+
 ## row.hydrate( propertyName, [cb] )
 
 Hydrates the row(s) linked with the specified foreign key(s) and/or foreign table(s).
@@ -631,6 +645,7 @@ book.hydrate(['author', 'reviews'])
 ```
 
 <a name="save" />
+
 ## row.save( [cb] )
 
 Saves the modified property values to the database (and saves linked rows recursively).
@@ -650,6 +665,7 @@ db.books.get(1)
 ```
 
 <a name="set" />
+
 ## row.set( data )
 
 Modifies multiple property values but does NOT save to the db.
@@ -674,6 +690,7 @@ db.books.get(1)
 ```
 
 <a name="update" />
+
 ## row.update( data, [cb] )
 
 Updates an existing row. A convenience method for `set()` then `save()`.
