@@ -19,7 +19,7 @@
 # Installation
 
 ```bash
-npm i oreo pg mysql
+npm i oreo pg@6 mysql
 ```
 
 # Quick Example
