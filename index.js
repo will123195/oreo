@@ -141,11 +141,13 @@ oreo.prototype.discover = function(opts, cb) {
         }
       })
 
-      self._onReady = self._onReady || []
-      self._onReady.forEach(function (fn) {
-        fn()
-      })
-      self._isReady = true
+      if (!self._isReady) {
+        self._onReady = self._onReady || []
+        self._onReady.forEach(function (fn) {
+          fn()
+        })
+        self._isReady = true
+      }
 
       cb(null, self)
     })
