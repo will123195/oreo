@@ -19,6 +19,7 @@ CREATE TABLE authors (
   name TEXT,
   books TEXT,
   Country VARCHAR(2),
+  birthDate DATE,
   CONSTRAINT authors_pkey PRIMARY KEY(id),
   CONSTRAINT Country FOREIGN KEY (Country) REFERENCES Countries(Code)
 );

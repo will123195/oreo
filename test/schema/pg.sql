@@ -17,6 +17,7 @@ CREATE TABLE authors (
   name VARCHAR,
   books INTEGER[],
   "Country" VARCHAR,
+  "birthDate" DATE,
   CONSTRAINT authors_pkey PRIMARY KEY(id),
   CONSTRAINT "Country" FOREIGN KEY ("Country") REFERENCES "Countries"("Code")
 );

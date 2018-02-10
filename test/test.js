@@ -144,7 +144,8 @@ describe('oreo', function() {
 
     it('should insert - cb', function(done) {
       db.authors.insert({
-        name: 'Jack Kerouac'
+        name: 'Jack Kerouac',
+        birthDate: '1922-03-12'
       }, function(err, author) {
         no(err)
         ok(author.id === 1, 'did not insert author - should insert')
@@ -169,7 +170,8 @@ describe('oreo', function() {
 
     it('should insert - promise', function(done) {
       db.authors.insert({
-        name: 'Tom Wolfe'
+        name: 'Tom Wolfe',
+        birthDate: '1931-03-02'
       }).then(function(author) {
         ok(author.id === 2, 'did not insert author - should insert')
         db.books.insert({
@@ -296,6 +298,7 @@ describe('oreo', function() {
     it('should get - cb', function(done) {
       db.authors.get(1, function(err, author) {
         no(err)
+        ok(author.birthDate === '1922-03-12', 'did not return correct date string')
         ok(author.id === 1, 'did not get author')
         done()
       })
