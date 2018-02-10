@@ -18,6 +18,7 @@ CREATE TABLE authors (
   books INTEGER[],
   "Country" VARCHAR,
   "birthDate" DATE,
+  "insertedAt" TIMESTAMPTZ DEFAULT now() NOT NULL,
   CONSTRAINT authors_pkey PRIMARY KEY(id),
   CONSTRAINT "Country" FOREIGN KEY ("Country") REFERENCES "Countries"("Code")
 );
