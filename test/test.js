@@ -311,6 +311,23 @@ describe('oreo', function() {
       }).catch(showError)
     })
 
+    it('should parameterize array of numbers', function () {
+      return db.execute(
+        'select * from authors where id in (:ids)',
+        { ids: [1, 2] }
+      ).then(function (authors) {
+        ok(authors.length === 2)
+      })
+    })
+
+    it('should parameterize array of strings', function () {
+      return db.execute(
+        'select * from authors where name in (:names)',
+        { names: ['Tom Wolfe', 'Jack Kerouac'] }
+      ).then(function (authors) {
+        ok(authors.length === 2)
+      })
+    })
 
     it('should get id=0 - promise', function (done) {
       if (config.driver === 'mysql') {
