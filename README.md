@@ -33,13 +33,11 @@ const db = oreo({
   name: 'my_db',
   user: 'root',
   pass: ''
-}, (err) => {
+}, async () => {
   // Assuming you have a table "artists"
   // Get an artist by primary key
-  db.artists.get(id)
-  .then(artist => {
-    console.log(artist)
-  })
+  const artist = await db.artists.get(id)
+  console.log(artist)
 }
 ```
 
@@ -98,9 +96,9 @@ const db = oreo({
   Promise: Promise, // optional, default: global.Promise
   models: {}, // optional
   schema: {} // optional skips auto-detect schema
-}).onReady(runExampleQueries)
+})
 
-async function runExampleQueries() {
+async function examples() {
 
   // Insert a new book, its author and some reviews (in a single transaction)
   let book = await db.books.insert({
@@ -161,6 +159,8 @@ async function runExampleQueries() {
   })
   console.log(author) // { id: 1, name: Hunter S. Thompson }
 }
+
+db.onReady(examples)
 ```
 
 Example database schema:
