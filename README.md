@@ -249,10 +249,9 @@ const db = oreo({
 Executes an arbitrary SQL query.
 
 - **sql** {String|Array} the SQL statement
-- **data** {Object} *(optional, unless `options` is specified)* parameterized query data
+- **data** {Object} *(optional, unless `opts` is specified)* parameterized query data
 - **opts** {Object} *(optional)* query options
     - **write** {Boolean} if truthy, forces query to run on master db, otherwise attempts to run on a read-only host
-    - **conString** {String} the connection string of the db
 - **cb** {Function} *(optional)* callback(err, rows) If *cb* is not provided, a Promise is returned.
 
 ```js
