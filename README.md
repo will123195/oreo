@@ -100,10 +100,10 @@ const db = oreo({
   schema: {} // optional skips auto-detect schema
 }).onReady(runExampleQueries)
 
-function runExampleQueries () {
+async function runExampleQueries() {
 
   // Insert a new book, its author and some reviews (in a single transaction)
-  db.books.insert({
+  let book = await db.books.insert({
     title: 'Fear and Loathing in Las Vegas',
     author: {
       name: 'Hunter S.Thompson'
@@ -113,50 +113,36 @@ function runExampleQueries () {
       { stars: 4, body: 'Bizarre, unpredictable yet strangely alluring.'}
     ]
   })
-  .then(book => {
-    console.log(book) // { id: 1, title: Fear and Loathing in Las Vegas, author_id: 1 }
+  console.log(book) // { id: 1, title: Fear and Loathing in Las Vegas, author_id: 1 }
 
-    // Hydrate a book's author (1-to-1 linked row)
-    book.hydrate('author')
-    .then(() => {
-      console.log(book.author) // { id: 1, name: Hunter S. Thompson }
-    })
+  // Hydrate a book's author (1-to-1 linked row)
+  await book.hydrate('author')
+  console.log(book.author) // { id: 1, name: Hunter S. Thompson }
 
-    // Hydrate a book's reviews (1-to-many linked rows)
-    book.hydrate('reviews')
-    .then(() => {
-      console.log(book.reviews) // array
-    })
+  // Hydrate a book's reviews (1-to-many linked rows)
+  await book.hydrate('reviews')
+  console.log(book.reviews) // array
 
-    // Update a book
-    book.update({
-      title: 'The Rum Diary'
-    })
-    .then(book => {
-      console.log(book) // { id: 1, title: The Rum Diary, author_id: 1 }
-    })
-
-    // Delete a book
-    book.delete()
-    .then(() => {
-      console.log(book) // {}
-    })
+  // Update a book
+  await book.update({
+    title: 'The Rum Diary'
   })
+  console.log(book) // { id: 1, title: The Rum Diary, author_id: 1 }
+
+  // Delete a book
+  await book.delete()
+  console.log(book) // {}
 
   // Get an author by primary key
-  db.authors.get(1)
-  .then(author => {
-    console.log(author) // { id: 1, name: Hunter S. Thompson }
-  })
+  let author = await db.authors.get(1)
+  console.log(author) // { id: 1, name: Hunter S. Thompson }
 
   // Get multiple authors by primary key
-  db.authors.mget([1])
-  .then(authors => {
-    console.log(authors) // [ { id: 1, name: Hunter S. Thompson } ]
-  })
+  let authors = await db.authors.mget([1])
+  console.log(authors) // [ { id: 1, name: Hunter S. Thompson } ]
 
   // Find authors
-  db.authors.find({
+  authors = await db.authors.find({
     where: {
       name: 'Hunter S. Thompson'
     },
@@ -165,45 +151,41 @@ function runExampleQueries () {
     offset: 0
     }
   })
-  .then(authors => {
-    console.log(authors) // [ { id: 1, name: Hunter S. Thompson } ]
-  })
+  console.log(authors) // [ { id: 1, name: Hunter S. Thompson } ]
 
   // Find one author
-  db.authors.findOne({
+  author = await db.authors.findOne({
     where: [
       "name like 'Hunter %'"
     ]
   })
-  .then(author => {
-    console.log(author) // { id: 1, name: Hunter S. Thompson }
-  })
+  console.log(author) // { id: 1, name: Hunter S. Thompson }
 }
 ```
 
 Example database schema:
 ```sql
-CREATE TABLE authors (
-  id SERIAL,
-  name VARCHAR,
-  CONSTRAINT author_pkey PRIMARY KEY(id)
+create table authors (
+  id serial,
+  name varchar,
+  constraint author_pkey primary key(id)
 );
 
-CREATE TABLE books (
-  id SERIAL,
-  title VARCHAR,
-  author_id INTEGER,
-  CONSTRAINT book_pkey PRIMARY KEY(id),
-  CONSTRAINT author FOREIGN KEY (author_id) REFERENCES authors(id)
+create table books (
+  id serial,
+  title varchar,
+  author_id integer,
+  constraint book_pkey primary key(id),
+  constraint author foreign key (author_id) references authors(id)
 );
 
-CREATE TABLE reviews (
-  id SERIAL,
-  book_id INTEGER,
-  stars INTEGER,
-  body VARCHAR,
-  CONSTRAINT review_pkey PRIMARY KEY(id),
-  CONSTRAINT book FOREIGN KEY (book_id) REFERENCES book(id)
+create table reviews (
+  id serial,
+  book_id integer,
+  stars integer,
+  body varchar,
+  constraint review_pkey primary key(id),
+  constraint book foreign key (book_id) references book(id)
 );
 ```
 **Pro Tip:** [Create a trigger](https://github.com/will123195/oreo/wiki/Trigger-to-populate-array) to auto-populate `author.books[]`.
