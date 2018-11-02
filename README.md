@@ -25,7 +25,7 @@ npm i oreo pg@6 mysql
 # Quick Example
 
 ```js
-const oreo = require('oreo')
+import oreo from 'oreo'
 
 const db = oreo({
   driver: 'pg',
@@ -33,12 +33,14 @@ const db = oreo({
   name: 'my_db',
   user: 'root',
   pass: ''
-}, async () => {
+}
+
+db.onReady(async () => {
   // Assuming you have a table "artists"
   // Get an artist by primary key
   const artist = await db.artists.get(id)
   console.log(artist)
-}
+})
 ```
 
 <hr />
@@ -81,7 +83,7 @@ const db = oreo({
 &dagger; see the example database schema below
 
 ```js
-const oreo = require('oreo')
+import oreo from 'oreo'
 
 // initialize oreo: auto-detects the schema and determines writable/read-only hosts
 const db = oreo({
