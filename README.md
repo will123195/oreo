@@ -115,11 +115,11 @@ async function examples() {
   })
   console.log(book) // { id: 1, title: Fear and Loathing in Las Vegas, author_id: 1 }
 
-  // Hydrate a book's author (1-to-1 linked row)
+  // Get the book's author (1-to-1 linked row)
   await book.hydrate('author')
   console.log(book.author) // { id: 1, name: Hunter S. Thompson }
 
-  // Hydrate a book's reviews (1-to-many linked rows)
+  // Get the book's reviews (1-to-many linked rows)
   await book.hydrate('reviews')
   console.log(book.reviews) // array
 
