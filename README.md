@@ -9,7 +9,7 @@
 - Database-first ORM with no configuration needed
 - Auto-detects tables, columns, primary keys and foreign keys
 - Saves multi-table nested objects with an atomic transaction
-- Detects primary and read-only hosts (from specified list of hosts)
+- Detects primary and read-only hosts
 
 # Database Support
 
