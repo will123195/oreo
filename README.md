@@ -32,7 +32,8 @@ const db = oreo({
   hosts: ['localhost'],
   name: 'my_db',
   user: 'root',
-  pass: ''
+  pass: '',
+  ssl: true
 }
 
 db.onReady(async () => {
@@ -92,7 +93,8 @@ const db = oreo({
   name: 'my_db',
   user: 'username',
   pass: 'password',
-  debug: console.log,
+  ssl: true,
+  debug: console.log, // optional
   memoize: 150, // optional duration in ms to memoize rows
   cache: redisClient, // optional
   Promise: Promise, // optional, default: global.Promise
@@ -210,6 +212,7 @@ Instantiates the `db` object and configures the database connection string(s).
     - **name** {String} the database name
     - **user** {String} the username
     - **password** {String} the password
+    - **ssl** {Boolean} *(optional, default `false`)* set to `true` to enable SSL connection
     - **debug** {Function} *(optional, default `false`)* set to `console.log` to see info about running queries
     - **memoize** {Integer} *(optional, default `false`)* duration in milliseconds to cache rows in process memory. Setting this to `150` is generally a no-brainer to prevent redundant queries.
     - **cache** {Object} *(optional, default `false`)* object with `get(key)` and/or `set(key, val)` methods (i.e. redis) to cache full rows (indefinitely). Cached rows are recached after `save()`/`insert()`/`update()`/`delete()`. The [Table functions](#table) fetch rows from the cache (and only fetch from sql the rows that are not cached).
@@ -226,6 +229,7 @@ const db = oreo({
   name: 'database',
   user: 'username',
   pass: 'password',
+  //ssl: false,
   //debug: false, //console.log
   //memoize: 0,
   //cache: null,
