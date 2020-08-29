@@ -7,7 +7,7 @@
 
 - No dependencies
 - Database-first ORM with no configuration needed
-- Auto-detects tables, columns, primary keys and foreign keys
+- Auto-detects tables, columns, (composite) primary keys and foreign keys
 - Saves multi-table nested objects with an atomic transaction
 - Detects primary and read-only hosts
 
