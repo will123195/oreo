@@ -430,6 +430,18 @@ describe('oreo', function() {
       })
     })
 
+    it('should find (where field is null)', function(done) {
+      db.books.find({
+        where: {
+          something: null
+        }
+      }, function(err, books) {
+        no(err)
+        ok(!!books.length, 'did not find books with null field')
+        done()
+      })
+    })
+
     it('should find (where array)', function(done) {
       db.authors.find({
         where: ["name = 'Jack Kerouac'"]
