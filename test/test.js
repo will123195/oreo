@@ -479,6 +479,18 @@ describe('oreo', function() {
       })
     })
 
+    it('should find (where object w/ array value)', function(done) {
+      db.authors.find({
+        where: {
+          name: ['Jack Kerouac', 'Thom Yorke']
+        }
+      }, function(err, authors) {
+        no(err)
+        ok(authors[0].id === 1, 'did not find author')
+        done()
+      })
+    })
+
     it('should find (composite primary key)', function(done) {
       db.ratings.find({
         where: {
