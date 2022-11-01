@@ -38,7 +38,7 @@
   "homepage": "https://github.com/will123195/oreo",
   "devDependencies": {
     "bluebird": "^3.3.3",
-    "mocha": "^2.4.5",
+    "mocha": "^10.1.0",
     "mysql": "^2.10.2",
     "pg": "^4.5.1"
   }
